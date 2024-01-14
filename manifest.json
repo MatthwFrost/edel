@@ -1,0 +1,33 @@
+{
+    "manifest_version": 3,
+    "name": "SelectSpeak",
+    "version": "1.0",
+    "description": "Highlight text and have it read out loud.",
+    "permissions": [
+      "activeTab",
+      "storage",
+      "contextMenus",
+      "downloads"
+    ],
+    "background": {
+      "service_worker": "/scripts/background.js"
+    },
+    "icons": {
+        "16": "icon30.png",
+        "32": "icon30.png",
+        "48": "icon60.png",
+        "128": "icon90.png"
+    },
+    "action": {
+      "default_icon": "icon90.png",
+      "default_title": "Read Text-to-Speech"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["/scripts/content.js"],
+        "run_at": "document_start"
+      }
+    ]
+  }
+  
