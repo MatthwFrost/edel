@@ -3,7 +3,8 @@ chrome.contextMenus.onClicked.addListener(clicked);
 // This gets set 3 times. Bug in Chrome api? changeInfo is returning undefined.
 chrome.tabs.onActivated.addListener(
   function(changeInfo){
-    if(changeInfo.status === undefined){
+    if(changeInfo.tabId){
+      // console.log(changeInfo);
       createDefualtContextMenu();
   }
 });
@@ -58,41 +59,3 @@ function createDefualtContextMenu(){
     contexts: ["selection"]
   }); 
 }
-
-
-// function getSassy(){
-//   // Add some sass into the program
-//   // Reads from a file and then returns a random a piece of audio.
-
-//   // Need to secure this key.
-//   let EL_API_KEY = '1a2411f0a67edc064394ae22239f7aa9';
-
-//   const voices = {
-//     old_british_man: "fjUEyxiEBGhIdIzLmVus",
-//     lily: "pFZP5JQG7iQjIQuC4Bku",
-//     myOwnVoice: "iCFUKc3rB6sfwKZLdamJ",
-//   }
-
-//   let STREAMINGLATENCY= 3
-//   let METHOD = 'stream'
-
-//   const options = {
-//     method: 'POST',
-//     headers: {
-//       'xi-api-key': EL_API_KEY, 
-//       'Content-Type': 'application/json'
-//     },
-//     body: `{"text":"I can't be bothered. I don't get paid enough...", "model_id":"eleven_turbo_v2", "stability":50}`
-//   };
-
-//   fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voices.old_british_man}/${METHOD}?optimize_streaming_latency=${STREAMINGLATENCY}`, options)
-//     .then(response => response.arrayBuffer())
-//     .then(data => { 
-//       // Play audio with the saved array buffer.
-//       const key = 'sassAudio';
-//       const value = { name: data };
-//       chrome.storage.local.set({key: value}, () => {
-//         console.log('Stored name: ' + value.name);
-//       });
-//     })
-// }

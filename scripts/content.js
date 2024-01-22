@@ -1,6 +1,12 @@
-// Set this as global, need access to the bad boy.
+// Set this as global, need access to the bad boy's.
 let source;
 let sentences;
+const DEBUG = true;
+function debubgLog(...message){
+  if (DEBUG) {
+    console.log(...message);
+  }
+} 
 
 chrome.runtime.onMessage.addListener(
   function(request) {
@@ -9,6 +15,7 @@ chrome.runtime.onMessage.addListener(
       let text = window.getSelection().toString().trim();
       sanitizeAndProcessText(text);
     } else if (request.greeting === "stop") {
+      // Reset the sentences array, and stop the audio.
       sentences = [];
       stopAudio(source);
     }
@@ -30,79 +37,61 @@ function sanitizeAndProcessText(selectedText) {
 // Stop audio source from playing
 function stopAudio(source){
   source.stop();
-  console.log("Stopping");
   chrome.runtime.sendMessage({action: false});
+  debubgLog("Audio stopped");
 }
 
 // Sanitise the selected text and then return the corrected text. 
 function sanitiseInput(text){
-  // Replace characters other than alphanumeric, spaces, and common punctuation with an empty string
-
   return text.replace(/[^a-zA-Z0-9\s\.,;:'"!?(){}[\]<>]/g, '').replace(/"/g, '\\"');
 }
 
-async function setRecentAudio(data, selectedText){
-  const query = 'https://28cxldb6ed.execute-api.eu-central-1.amazonaws.com/dev/processAudioData';
-
-  var arrayBuffer = _arrayBufferToBase64(data);
-  const body = {
-    "userID": "Matt",
-    "arrayBuffer": arrayBuffer,
-    "text": selectedText,
-  }
-
-  await fetch(query, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  })
-  .then(response => response.json())
-  .then(data => {
-    console.log(data);
-  })
-};
-
-function _arrayBufferToBase64( buffer ) {
-  var binary = '';
-  var bytes = new Uint8Array( buffer );
-  var len = bytes.byteLength;
-  for (var i = 0; i < len; i++) {
-      binary += String.fromCharCode( bytes[ i ] );
-  }
-  return window.btoa( binary );
-}
-
 async function getSpeechElevenLabs(text) {
+  // Show that the function is loading on cursor.
   setCursorToWait();
-  chrome.runtime.sendMessage({action: true});
-  sentences = splitIntoSentences(text);
-  let currentSentenceIndex = 0;
-  let nextAudioData; 
 
+  // Let background.js know to set the "stop" context menu.
+  chrome.runtime.sendMessage({action: true});
+
+  // Split text into sentences. This is a simple regex-based approach.
+  sentences = splitIntoSentences(text);
+
+  // Set variables for the loop.
+  let currentSentenceIndex = 0; // Index of the sentence currently being played
+  let nextAudioData;            // Prefetched audio data for the next sentence
+
+  // Find the next sentence to play, and play it.
   async function playNextSentence() {
-    const start = Date.now();
+    
+    // Timing FOR DEBUG.
+    let start;
+    if (DEBUG){
+      start = Date.now();
+    }
+
+    // Check if the if we've reached the end of the sentences array.
     if (currentSentenceIndex < sentences.length) {
       const sentence = sentences[currentSentenceIndex];
       let audioData;
 
+      // Is there new audio to play?
       if (nextAudioData) {
-        audioData = nextAudioData; // Use prefetched audio
-        nextAudioData = null; // Reset prefetch audio
+        audioData = nextAudioData;              // Use prefetched audio
+        nextAudioData = null;                   // Reset prefetch audio
       } else {
-        audioData = await fetchTTS(sentence); // Fetch TTS for the current sentence if not prefetched
+        audioData = await fetchTTS(sentence);   // Fetch TTS for the current sentence if not prefetched
       }
 
       playAudio(audioData, async () => {
         currentSentenceIndex++;
-        await playNextSentence(); // Play next sentence after current one ends
+        await playNextSentence();               // Play next sentence after current one ends
       });
 
-      console.log(`Playing sentence ${currentSentenceIndex + 1} of ${sentences.length}`);
+      // FOR DEBUG
+      debubgLog(`Playing sentence ${currentSentenceIndex + 1} of ${sentences.length}`);
       const end = Date.now();
-      console.log(`Execution time: ${end - start} ms`);
-      await prefetchNextSentence(); // Prefetch the next sentence
+      debubgLog(`Execution time: ${end - start} ms`);
+      await prefetchNextSentence();             // Prefetch the next sentence
     } else {
       // All sentences have been played
       chrome.runtime.sendMessage({action: false});
@@ -148,7 +137,7 @@ async function fetchTTS(sentence) {
   };
 
   try {
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voices.old_british_man}/${METHOD}?optimize_streaming_latency=${STREAMINGLATENCY}`, options);
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voices.lily}/${METHOD}?optimize_streaming_latency=${STREAMINGLATENCY}`, options);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -189,3 +178,30 @@ function setCursorToWait(){
 function setCursorToDefault(){
   document.getElementById("corsor_wait").remove();
 }
+
+// document.addEventListener('DOMContentLoaded', () => {
+//   // Insert where ever there is an article
+//   const article = document.querySelector("article");
+//   console.log(article);
+
+//   // `document.querySelector` may return null if the selector doesn't match anything.
+//   if (article) {
+//     const text = article.textContent;
+//     const wordMatchRegExp = /[^\s]+/g; // Regular expression
+//     const words = text.matchAll(wordMatchRegExp);
+//     // matchAll returns an iterator, convert to array to get word count
+//     const wordCount = [...words].length;
+//     const readingTime = Math.round(wordCount / 200);
+//     const badge = document.createElement("p");
+//     // Use the same styling as the publish information in an article's header
+//     badge.classList.add("color-secondary-text", "type--caption");
+//     badge.textContent = `⏱️ ${readingTime} min read`;
+
+//     // Support for API reference docs
+//     const heading = article.querySelector("h1");
+//     // Support for article docs with date
+//     const date = article.querySelector("time")?.parentNode;
+
+//     (date ?? heading).insertAdjacentElement("afterend", badge);
+//   }
+// });
