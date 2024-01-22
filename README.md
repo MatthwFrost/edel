@@ -45,6 +45,7 @@ AWS:
 OLD:
 - Waiting for server response = 502ms
 - Download content = 3.90s <- BULK OF THE TIME
+
 NEW:
 - Load < 2 secs for any text length. (Prefetching feature)
 
