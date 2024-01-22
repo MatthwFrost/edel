@@ -21,15 +21,15 @@ Prefetching audio now. But only doing it when the audio comes to an end. Maybe c
 GPT IS SO GOOD
 
 #### TODO:
-Read out Reddit posts | FEATURE
-Highlight paragraphs with a selection tool? | FEATURE
-Create indiviual usernames. | FEATURE
-Change voice, Could try. | FEATURE
-Change speed, Pitch is too high for playbackRate | FEATURE
-Stop context menu doesn't work | BUG
-Previous audio doesn't stop playing when new one starts REPLAY CENTRE | BUG 
-PROGRAM IS TOO SLOW | BUG
-Audio won't play if its not a sentence or longer | BUG
+- Read out Reddit posts | FEATURE
+- Highlight paragraphs with a selection tool? | FEATURE
+- Create indiviual usernames. | FEATURE
+- Change voice, Could try. | FEATURE
+- Change speed, Pitch is too high for playbackRate | FEATURE
+- Stop context menu doesn't work | BUG
+- Previous audio doesn't stop playing when new one starts REPLAY CENTRE | BUG 
+- PROGRAM IS TOO SLOW | BUG
+- Audio won't play if its not a sentence or longer | BUG
 
 #### Fixed:
 Cleaned up code
