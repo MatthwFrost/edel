@@ -1,35 +1,43 @@
-# Highlight text to listen 0.1.1
+# Highspeech (COuld do with a better name) 0.1.1
 Listen to text on a website by selecting, right click and click listen.
 
 ## Recent feature update
 - Able to play audio by selecting it.
 - Prefetching audio. Speed up the fetch by 63%
 
+
+### Working on
+Testing if fetching is faster if moved to a lamda function | WORKING
+
 #### TODO:
-- Read article posts UI element. | FEATURE
-- Read out Reddit posts | FEATURE
-- Highlight paragraphs with a selection tool? | FEATURE
-- Create indiviual usernames. | FEATURE
-- Change voice, Could try. | FEATURE
-- Change speed, Pitch is too high for playbackRate | FEATURE
-- Audio won't play if its not a sentence or longer | BUG
+- First fetch = high stability, other fetches low variablity    | FEATURE
+- IMPORTANT Better error UI.                                    | FEATURE
+- IMPORTANT Create indiviual usernames.                         | FEATURE
+- IMPORTANT Change voice                                        | FEATURE
+- Change speed, Pitch is too high for playbackRate              | FEATURE
+- Show what text is being writen with highlight                 | FEATURE
+- Read article posts UI element.                                | FEATURE
+- Read out Reddit posts                                         | FEATURE
+- Highlight paragraphs with a selection tool?                   | FEATURE
+- Could be good to skip ahead by selecting text.
+- Audio won't play if its not a sentence or longer              | BUG
+- Get rid of API Key                                            | BUG
 
 #### Fixed:
-- Add a DEBUG tag. | FEATURE
-- Stop context menu doesn't work | BUG <- Should be fixed this time. 
+- Add a DEBUG tag.                                                      | FEATURE
+- Stop context menu doesn't work                                        | BUG <- Should be fixed this time. 
 - Previous audio doesn't stop playing when new one starts REPLAY CENTRE | BUG 
-- PROGRAM IS TOO SLOW | BUG <- Big new update feature.
-- Cleaned up code
-- Audio being overwritten in S3.
+- PROGRAM IS TOO SLOW                                                   | BUG <- Big new update feature.
+- Cleaned up code                                                       | REFACTOR
+- Audio being overwritten in S3.                                        | BUG
 
 ### Tech stack
 
 AWS:
- - DynamoDB.
- - S3 Bucket.
- - Gateway API.
- - Lamda Functions
-
+- DynamoDB.
+- S3 Bucket.
+- Gateway API.
+- Lamda Functions
 - Vanilla JS, HTML, CSS.
 - Chrome extensions
 
@@ -50,12 +58,17 @@ NEW:
 - Load < 2 secs for any text length. (Prefetching feature)
 
 Ideas:
-    - Prefetching <- How would that would? How would you get the selection? ✅
-    - Moving the fetch to a lamda function🤔
-    - Do I need to get all the text at once or am I limited to the server response time; Answer: no, if done right.
+- Prefetching <- How would that would? How would you get the selection? ✅
+- Moving the fetch to a lamda function🤔
+- Do I need to get all the text at once or am I limited to the server response time; Answer: no, if done right.
 
 # What needs ready for release?
 - Reliable. Lots of testing. What breaks the software. Needs to work everytime.
 - Play audio quickly by a click of a button, be able to stop and start everytime.
 - Replay centre not a must.
 - Clear error handling. Alerts and popup.
+
+
+### Testing
+- Try on different browser, and account.
+- Constantly use most days. Try install at work.

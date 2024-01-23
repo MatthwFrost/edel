@@ -43,7 +43,7 @@ function stopAudio(source){
 
 // Sanitise the selected text and then return the corrected text. 
 function sanitiseInput(text){
-  return text.replace(/[^a-zA-Z0-9\s\.,;:'"!?(){}[\]<>]/g, '').replace(/"/g, '\\"');
+  return text.replace(/[^a-zA-Z0-9\s\.,;:'"!?(){}\[\]<>-]/g, '');
 }
 
 async function getSpeechElevenLabs(text) {
@@ -110,43 +110,10 @@ async function getSpeechElevenLabs(text) {
 }
 
 async function fetchTTS(sentence) {
-
-  // Timing FOR DEBUG
-  let EL_API_KEY = '1a2411f0a67edc064394ae22239f7aa9';
-
-  const voices = {
-    old_british_man: "fjUEyxiEBGhIdIzLmVus",
-    lily: "pFZP5JQG7iQjIQuC4Bku",
-    myOwnVoice: "iCFUKc3rB6sfwKZLdamJ",
-  }
-
-  let STREAMINGLATENCY= 3;
-  let METHOD = 'stream';
-
-  const options = {
-    method: 'POST',
-    headers: {
-      'xi-api-key': EL_API_KEY, 
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      text: sentence,
-      model_id: "eleven_turbo_v2",
-      stability: 30 
-    }),
-  };
-
-  try {
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voices.lily}/${METHOD}?optimize_streaming_latency=${STREAMINGLATENCY}`, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.arrayBuffer();  // This should convert the response to an ArrayBuffer
-  } catch (error) {
-    console.error('Error fetching TTS data:', error);
-    throw error;  // Rethrow the error to handle it in the calling function
-  }
-
+  const url = `https://x6oh96vkd8.execute-api.eu-central-1.amazonaws.com/fetchAudioAPI/?sentence=${sentence}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return base64ToArrayBuffer(data.audioBase64); 
 }
 
 function playAudio(audioData, onEnded) {
@@ -168,6 +135,17 @@ function splitIntoSentences(text) {
   return text.match(/[^.;:\n!?]+[.;:\n!?]+/g) || [];
 }
 
+
+function base64ToArrayBuffer(base64) {
+    var binaryString = atob(base64);
+    var bytes = new Uint8Array(binaryString.length);
+    for (var i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    console.log(bytes.buffer);
+    return bytes.buffer;
+}
+
 function setCursorToWait(){
   const style = document.createElement("style");
   style.id = "corsor_wait";
@@ -178,30 +156,3 @@ function setCursorToWait(){
 function setCursorToDefault(){
   document.getElementById("corsor_wait").remove();
 }
-
-// document.addEventListener('DOMContentLoaded', () => {
-//   // Insert where ever there is an article
-//   const article = document.querySelector("article");
-//   console.log(article);
-
-//   // `document.querySelector` may return null if the selector doesn't match anything.
-//   if (article) {
-//     const text = article.textContent;
-//     const wordMatchRegExp = /[^\s]+/g; // Regular expression
-//     const words = text.matchAll(wordMatchRegExp);
-//     // matchAll returns an iterator, convert to array to get word count
-//     const wordCount = [...words].length;
-//     const readingTime = Math.round(wordCount / 200);
-//     const badge = document.createElement("p");
-//     // Use the same styling as the publish information in an article's header
-//     badge.classList.add("color-secondary-text", "type--caption");
-//     badge.textContent = `⏱️ ${readingTime} min read`;
-
-//     // Support for API reference docs
-//     const heading = article.querySelector("h1");
-//     // Support for article docs with date
-//     const date = article.querySelector("time")?.parentNode;
-
-//     (date ?? heading).insertAdjacentElement("afterend", badge);
-//   }
-// });

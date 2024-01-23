@@ -100,7 +100,7 @@ function addLoadMoreButton(MAX_LENGTH, offset, limit) {
     document.body.appendChild(fetchMoreButton);
 
     fetchMoreButton.addEventListener('click', () => {
-        fetchMoreButton.innerHTML = '<img src="loading.gif" alt="Loading..." style="width: 20px; height: 20px; margin-right: 5px;" /> Searching';
+        fetchMoreButton.innerHTML = '<img src="/assets/loading.gif" alt="Loading..." style="width: 20px; height: 20px; margin-right: 5px;" /> Searching';
         getRecentAudio();
     });
 };
