@@ -1,10 +1,123 @@
 <html>
+  <head>
+    <link rel="stylesheet" href="app.css">
+  </head>
   <body>
-    <h1>Highspeech replay centre</h1>
-    <!-- <button id="clickme">loading your data</button> -->
-    <div id="load" class="loading">
-      <img src="/assets/loading.gif" alt="Loading..." style="width: 20px; height: 20px; margin-right: 5px;" />
+    <div class="profile" id="profile">
     </div>
+    <div class="nav">
+      <div class="nav-left">
+        <img src="/assets/newicon.png" alt="Icon" class="nav-img">
+        <h1>Edel<span class="version-number">0.1.1</span></h1>
+      </div>
+      <div id="nav-user-icon">
+      </div>
+    </div>
+    <!-- Health of app -->
+    <div class="divider">
+    </div>
+    <div class="menuItem" id="health">
+      <div class="icon-title">
+        <div class="menuIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <span class="menu-title">Edel's health</span>
+      </div>
+      <span class="dot" id="dot"></span>
+    </div>
+    <div class="menuItem">
+      <div class="icon-title">
+        <div class="menuIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-italic"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+        </div>
+        <span class="menu-title">Characters left</span>
+      </div>
+      <div class="icon-right">
+        <div id="characters" class="charcter-div"></div>
+      </div>
+    </div>
+    <div class="space">
+      <div class="menu-divider"></div>
+    </div>
+    <div class="menuItem">
+      <div class="icon-title">
+        <div class="menuIcon">
+          <!-- Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <span class="menu-title">Reverb's voice:</span>
+      </div>
+      <div class="icon-right">
+        <div class="dropdown" id="voice">
+            <button class="dropbtn" id="select-voice">selected</button>
+            <div class="dropdown-content" id="content-voice">
+              <a href="#" data-id="old-british-man">British Old Man</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="british-female">British Female</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="nicole">Nicole</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="british-male">Britsh Male</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="jack">Jack</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="george">George</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="stella">Stella</a>
+            </div>
+          </div>
+        </div>
+      </div>    
+    <div class="menuItem">
+      <div class="icon-title">
+        <div class="menuIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </div>
+        <span class="menu-title">Quality</span>
+      </div>
+      <div class="icon-right">
+        <div class="dropdown" id="quality">
+          <button class="dropbtn" id="select-quality">Quality</button>
+          <div class="dropdown-content" id="content-quality">
+            <a href="#" data-id="high">High (Slowest)</a>
+            <a href="#" data-id="medium">Medium (Average)</a>
+            <a href="#" data-id="low">Low (Fastest)</a>
+          </div>
+        </div>
+      </div>
+    </div>   
+    <!-- <div class="menuItem">
+      <div class="icon-title">
+        <div >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play-circle"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+        <span class="menu-title">Recordings</span>
+      </div>
+      <div class="icon-right">
+        <span>></span>
+      </div>
+    </div> -->
+    <div class="bottom-nav">
+      <div class="menuItem-gold">
+        <div class="icon-title">
+          <div class="menuIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shopping-bag"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <!-- Figure this out. Maybe say how many credits you want and then go to a stripe payment page. -->
+          <span class="menu-title">Buy more credits</span>
+        </div>
+        <div class="icon-right">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+      </div>   
+      <span class="bottom-nav-text">
+        Beta. Please <a href="https:\\www.twitter.com" target="_blank">report</a> any issues.
+      </span>
+    </div>
+    <!-- <button id="clickme">loading your data</button> -->
+    <!-- <div id="load" class="loading">
+      <img src="/assets/loading.gif" alt="Loading..." style="width: 20px; height: 20px; margin-right: 5px;" />
+    </div> -->
     <!-- <div class="audio-component">
       <div class="sub-component">
         <h3 class="component-heading">This is a h3</h3>
@@ -14,97 +127,4 @@
     </div> -->
   </body>
   <script src="/scripts/popup.js"></script>
-  <style>
-    body {
-      width: 400px;
-      height: 400px;
-      color: #000;
-      font-family: sans-serif;
-      font-size: 14px;
-      padding: 40px;
-      padding-bottom: 20px;
-      margin: 0 0 20px 0px;
-      overflow: scroll;
-      display: flex-column;
-      justify-content: center;
-      align-content: center;
-    }
-    h1 {
-      font-size: 20px;
-      font-weight: bold;
-      margin: 0 0 10px 0;
-    }
-    button {
-      width: 100%;
-      height: 40px;
-      background-color: whitesmoke;
-      color: #000;
-      border: none;
-      border-radius: 2px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    p {
-      margin: 0 0 5px 0;
-    }
-    button:hover {
-      background-color: #dfe0e2;
-    }
-    .AudioButton {
-      background-color: seagreen;
-      color: whitesmoke;
-      width: 20vw;
-    }
-    .audio-component {
-      width: 390px; /* Set a fixed width */
-      height: 15vh;
-      border-radius: 10px;
-      margin: 10px 0 10px 0;
-      display: flex;
-      flex-direction: row;
-      align-items: center; 
-      justify-content: center;
-    }
-
-    .sub-component {
-      margin: 10px;
-      width: 300px; /* Set a fixed width */
-    }
-
-    .component-heading {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .component-info {
-      font-size: 12px;
-      color: #666;
-    }
-    .load-more{
-      width: 40%;
-      height: 30px;
-      color: gray; 
-      background-color: #fff;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      font-weight: lighter;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 30% 0 30%;
-    }
-
-    .loading{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-  </style>
 </html>

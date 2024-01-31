@@ -1,23 +1,28 @@
 {
     "manifest_version": 3,
-    "name": "Highspeech",
-    "version": "0.1.0",
-    "description": "Highlight text and have it read out loud.",
+    "name": "Edel",
+    "version": "0.1.1",
+    "description": "Minimal extension to read aloud any Reddit post, audio books or webpages with the best sounding speech synthesis.",
     "permissions": [
       "activeTab",
       "storage",
       "contextMenus",
       "downloads",
-      "identity.email"
+      "identity"
     ],
+    "oauth2": {
+      "client_id": "227012789435-remc8dvdrrg302rg7ntdqac53u9lol77.apps.googleusercontent.com",
+      "scopes": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"] 
+    },
     "background": {
-            "service_worker": "/scripts/background.js"
+            "service_worker": "/scripts/background.js",
+            "permissions": true
     },
     "icons": {
-        "16": "/assets/icon30.png",
-        "32": "/assets/icon30.png",
-        "48": "/assets/icon60.png",
-        "128": "/assets/icon90.png"
+        "16": "/assets/newicon.png",
+        "32": "/assets/newicon.png",
+        "48": "/assets/newicon.png",
+        "128": "/assets/newicon.png"
     },
     "content_scripts": [
       {

@@ -1,35 +1,44 @@
-# Highspeech (COuld do with a better name) 0.1.1
+# Reverb (COuld do with a better name) 0.1.1
 Listen to text on a website by selecting, right click and click listen.
 
 ## Recent feature update
 - Able to play audio by selecting it.
 - Prefetching audio. Speed up the fetch by 63%
 
-
-### Working on
-Testing if fetching is faster if moved to a lamda function | WORKING
+### Found errors
+- Randomly stops.
+- Speech is quite random.
+- Starting speech is quite annoying. Maybe include a readaloud button on paragraphs.
+- Doesn't work between pages.
 
 #### TODO:
-- First fetch = high stability, other fetches low variablity    | FEATURE
-- IMPORTANT Better error UI.                                    | FEATURE
-- IMPORTANT Create indiviual usernames.                         | FEATURE
-- IMPORTANT Change voice                                        | FEATURE
+- Implement reddit support.
+
+#### LAZYTODO:
+- Load test application.                                        | TEST
+- Skipping some sentences? why?                                 | BUG
 - Change speed, Pitch is too high for playbackRate              | FEATURE
 - Show what text is being writen with highlight                 | FEATURE
 - Read article posts UI element.                                | FEATURE
-- Read out Reddit posts                                         | FEATURE
 - Highlight paragraphs with a selection tool?                   | FEATURE
-- Could be good to skip ahead by selecting text.
+- Could be good to skip ahead by selecting text.                | FEATURE HARD
 - Audio won't play if its not a sentence or longer              | BUG
-- Get rid of API Key                                            | BUG
+- Stop context menu doesn't work Randomly                       | BUG <- Should be fixed this time. 
 
 #### Fixed:
+- IMPORTANT Better error UI.                                            | FEATURE
+- Doesn't work on dynamically loaded pages                      | BUG <- Could be fixed by using a shortcut to start the selection.
+- IMPORTANT Create indiviual usernames.                         | FEATURE
+- Get rid of API Key                                                    | BUG
+- IMPORTANT Change voice                                                | FEATURE
+- Read out Reddit posts                                                 | FEATURE
 - Add a DEBUG tag.                                                      | FEATURE
-- Stop context menu doesn't work                                        | BUG <- Should be fixed this time. 
 - Previous audio doesn't stop playing when new one starts REPLAY CENTRE | BUG 
 - PROGRAM IS TOO SLOW                                                   | BUG <- Big new update feature.
 - Cleaned up code                                                       | REFACTOR
 - Audio being overwritten in S3.                                        | BUG
+- First fetch = high stability, other fetches low variablity            | FEATURE
+
 
 ### Tech stack
 
@@ -67,6 +76,8 @@ Ideas:
 - Play audio quickly by a click of a button, be able to stop and start everytime.
 - Replay centre not a must.
 - Clear error handling. Alerts and popup.
+- AWS Roles stored.
+- API gateways protected.
 
 
 ### Testing
