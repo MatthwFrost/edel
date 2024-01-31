@@ -4,7 +4,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
     // This code runs when the extension is first installed
     chrome.identity.getAuthToken({ interactive: true }, async function(token) {
       if (chrome.runtime.lastError) {
-        console.error(chrome.runtime.lastError);
+        console.error(JSON.stringify(chrome.runtime.lastError, null, 2));
         return;
       }
       
