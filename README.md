@@ -1,4 +1,4 @@
-# Reverb (COuld do with a better name) 0.1.1
+# Reverb (COuld do with a better name) 0.2.12
 Listen to text on a website by selecting, right click and click listen.
 
 ## Recent feature update
