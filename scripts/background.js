@@ -15,12 +15,16 @@ chrome.runtime.onInstalled.addListener(function(details) {
         },
       })
       const userInfo = await response.json();
-      console.log('User info fetched:', userInfo);
+      // console.log('User info fetched:', userInfo);
       const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setUpUser?user=${userInfo.id}`;
       const res = await fetch(url);
       const data = await res.json();
 
-      chrome.storage.local.set({'user': data.userID});
+      try {
+        await chrome.storage.local.set({'user': data.userID});
+      } catch (error){
+        console.error(error);
+      }
           // Use the profile image URL as needed
     });
     // Place your initialization or setup script here
@@ -34,7 +38,7 @@ chrome.contextMenus.onClicked.addListener(clicked);
 // This gets set 3 times. Bug in Chrome api? changeInfo is returning undefined.
 chrome.tabs.onActivated.addListener(
   async function(changeInfo){
-    console.log("New tab", changeInfo.tabId);
+    // console.log("New tab", changeInfo.tabId);
     if(changeInfo.tabId){
       // console.log(changeInfo);
       createDefualtContextMenu();
@@ -90,7 +94,7 @@ function initialize() {
     voice = items.voiceID || 'old-british-man';
     quality = items.qualityID || 'low';
 
-    console.log('Initialized voice and quality:', voice, quality);
+    // console.log('Initialized voice and quality:', voice, quality);
   });
 }
 
@@ -104,7 +108,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }else if (message.action === false) {
     createDefualtContextMenu();
   }else if (message.action === "redditScriptLoaded") {
-      console.log("Reddit script has loaded in tab", sender.tab.id);
+      // console.log("Reddit script has loaded in tab", sender.tab.id);
 
       // Send a response back
       sendResponse({ message: "Acknowledged the loading of Reddit script" });
@@ -137,7 +141,7 @@ function getCharacters() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get('user', async function(items) {
       try {
-        console.log(items.user);
+        // console.log(items.user);
         const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${items.user}`;
         console.log(url);
         const response = await fetch(url);

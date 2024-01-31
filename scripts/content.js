@@ -12,7 +12,6 @@ let source;
 let sentences;
 const MAX_CHARACTER_LENGTH = 5000;
 
-
 // Too console.log or not to console.log
 const DEBUG = true;
 function debugLog(...message){
@@ -33,7 +32,7 @@ chrome.runtime.onMessage.addListener(function(request) {
     alert("Out of characters");
   } else if (request.reddit === true){
     // setRedditPlayButton();
-    console.log("REDDIT PAGE FOUND");
+    debugLog("REDDIT PAGE FOUND");
   }
 });
 
@@ -74,10 +73,10 @@ async function getSpeechElevenLabs(text) {
   async function playNextSentence() {
     
     // Timing FOR DEBUG.
-    let start;
-    if (DEBUG){
-      start = Date.now();
+    if (DEBUG) {
+        start = Date.now();
     }
+    
 
     // Check if the if we've reached the end of the sentences array.
     if (currentSentenceIndex < sentences.length) {
@@ -253,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
               const redditCommentsRegex = /^https:\/\/www\.reddit\.com\/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+/;
               if (redditCommentsRegex.test(this.location.href)) {
                   // Perform your actions for Reddit comment URLs
-                  console.log("Reddit site detected on tab");
+                  debugLog("Reddit site detected on tab");
                   shouldAddButton = true;
               }else {
                 shouldAddButton = false;
@@ -274,22 +273,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setRedditPlayButton() {
-  const postContent = document.querySelector('div[data-test-id="post-content"]');
+  const postContent = document.querySelector('._21pmAV9gWG6F_UKVe7YIE0');
+  postContent.style = "display: flex; justify-content: center' align-items: center;"
+    // const buttonContainer = document.querySelector('._1hwEKkB_38tIoal6fcdrt9');
   if (postContent) {
       // Check if the play button already exists
       if (!postContent.querySelector('.custom-play-button')) {
           const playButton = document.createElement('button');
-          playButton.textContent = '▶ Play';
+          playButton.textContent = '▶ Play Edel';
           playButton.classList.add('custom-play-button');
-          playButton.style.marginTop = '10px'; // Example styling
+          playButton.style = "font-size: 15px; margin-left: 10px"
 
           // Event listener for the play button
           playButton.addEventListener('click', () => {
               // Logic to handle play button click
-              console.log('Play button clicked');
-              // console.log(postContent.textContent);
               const postDetails = extractRedditPostDetails();
-              console.log(postDetails.title, postDetails.text)
+              debugLog(postDetails.title, postDetails.text)
+              const text = `${postDetails.title}...uhh ${postDetails.text}`
+              if (text > MAX_CHARCTERS){
+                sanitiseInput(text);
+              }else{
+                alert("You have reached max characters.")
+              }
           });
 
           // Insert the play button

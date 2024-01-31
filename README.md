@@ -13,6 +13,7 @@ Listen to text on a website by selecting, right click and click listen.
 
 #### TODO:
 - Implement reddit support.
+- Reddit play doesn't check for char limit.
 
 #### LAZYTODO:
 - Load test application.                                        | TEST
@@ -47,15 +48,7 @@ AWS:
 - S3 Bucket.
 - Gateway API.
 - Lamda Functions
-- Vanilla JS, HTML, CSS.
-- Chrome extensions
-
-#### bin
-- Fix weird wikipedia issues. Delimeters? | BUG | SHOULD be fixed?
-- Stoping the source instead of reloading the website.
-- Added a wait cursor when the audio is loading.
-- Add a save to notes feature. I think ill store on users local storage, and create a simple UI. Maybe one day move it to AWS. Could be good for learning languages.
-
+- Chrome extensions API
 
 ### Performance
 
@@ -66,20 +59,16 @@ OLD:
 NEW:
 - Load < 2 secs for any text length. (Prefetching feature)
 
-Ideas:
-- Prefetching <- How would that would? How would you get the selection? ✅
-- Moving the fetch to a lamda function🤔
-- Do I need to get all the text at once or am I limited to the server response time; Answer: no, if done right.
-
 # What needs ready for release?
 - Reliable. Lots of testing. What breaks the software. Needs to work everytime.
 - Play audio quickly by a click of a button, be able to stop and start everytime.
-- Replay centre not a must.
 - Clear error handling. Alerts and popup.
 - AWS Roles stored.
 - API gateways protected.
+- Reddit support.
+- GPT Support. <- Imagine its quite hard because of the dynamic content.
 
 
 ### Testing
 - Try on different browser, and account.
-- Constantly use most days. Try install at work.
+- Constantly use. Try install at work.
