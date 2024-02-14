@@ -10,7 +10,9 @@
 // Set this as global, need access to the bad boy's.
 let source;
 let sentences;
-const MAX_CHARACTER_LENGTH = 5000;
+const MAX_CHARACTER_LENGTH = 100000;
+
+// Lets program keep track of counter when script is injected.
 
 // Too console.log or not to console.log
 const DEBUG = true;
@@ -31,8 +33,8 @@ chrome.runtime.onMessage.addListener(function(request) {
   } else if (request.greeting === "out"){
     alert("Out of characters");
   } else if (request.reddit === true){
-    // setRedditPlayButton();
     debugLog("REDDIT PAGE FOUND");
+    setRedditPlayButton();
   }
 });
 
@@ -120,10 +122,13 @@ async function getSpeechElevenLabs(text) {
 }
 
 async function setCharacter(length){
-  chrome.storage.local.get('user', function(result) {
+  chrome.storage.sync.get('user', function(result) {
     if (chrome.runtime.lastError) {
       console.error(chrome.runtime.lastError);
       return;
+    }
+    if (result.user === undefined){
+      alert("Please reinstalled chrome extension.")
     }
 
     debugLog('Value currently is ' + result.user);
@@ -289,12 +294,12 @@ function setRedditPlayButton() {
               // Logic to handle play button click
               const postDetails = extractRedditPostDetails();
               debugLog(postDetails.title, postDetails.text)
-              const text = `${postDetails.title}...uhh ${postDetails.text}`
-              if (text > MAX_CHARCTERS){
+              const text = `${postDetails.title}. ${postDetails.text}`
+              // if (text > MAX_CHARCTERS){
                 sanitiseInput(text);
-              }else{
-                alert("You have reached max characters.")
-              }
+              // }else{
+              //   alert("You have reached max characters.")
+              // }
           });
 
           // Insert the play button
@@ -329,125 +334,3 @@ function extractRedditPostDetails() {
 
   return { title, username, text};
 }
-// For the future
-// function setParagraphPlayButton(){
-  
-//   var cssAnimation = `
-//   @keyframes exampleAnimation {
-//     0% { opacity: 0; }
-//     100% { opacity: 1; }
-//   }
-
-//   .button-15 {
-//     animation-name: exampleAnimation;
-//     animation-duration: 0.2s;
-//     animation-fill-mode: forwards;
-//     background-color: #FFFFFF;
-//     border: 1px solid #222222;
-//     border-radius: 8px;
-//     box-sizing: border-box;
-//     color: #222222;
-//     cursor: pointer;
-//     display: inline-block;
-//     font-family: Circular,-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
-//     font-size: 12px;
-//     font-weight: 600;
-//     line-height: 20px;
-//     margin: 0;
-//     outline: none;
-//     padding: 3px 13px;
-//     position: relative;
-//     text-align: center;
-//     text-decoration: none;
-//     touch-action: manipulation;
-//     transition: box-shadow .2s,-ms-transform .1s,-webkit-transform .1s,transform .1s;
-//     user-select: none;
-//     -webkit-user-select: none;
-//     width: auto;
-//   }
-  
-//   .button-15:focus-visible {
-//     box-shadow: #222222 0 0 0 2px, rgba(255, 255, 255, 0.8) 0 0 0 4px;
-//     transition: box-shadow .2s;
-//   }
-  
-//   .button-15:active {
-//     background-color: #F7F7F7;
-//     border-color: #000000;
-//     transform: scale(.96);
-//   }
-  
-//   .button-15:disabled {
-//     border-color: #DDDDDD;
-//     color: #DDDDDD;
-//     cursor: not-allowed;
-//     opacity: 1;
-//   }
-//   `;
-
-
-//   var styleSheet = document.createElement('style');
-//   styleSheet.type = 'text/css';
-//   styleSheet.innerText = cssAnimation;
-//   document.head.appendChild(styleSheet);
-
-//   var hoverButton = document.createElement('button');
-//   hoverButton.innerHTML = "▶️";
-//   hoverButton.id = 'button-15'; // Assign an ID for easier CSS targeting
-//   hoverButton.style.position = 'absolute';
-//   hoverButton.style.zIndex = '999';
-//   hoverButton.style.display = 'none'; // Initially hidden
-//   document.body.appendChild(hoverButton); // Append to body
-
-
-//   var paragraphs = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, a');
-//   var currentParagraph = null;
-//   var timer;
-//   var hoverButton;
-  
-//   paragraphs.forEach(function(paragraph) {
-    
-//     if (paragraph.innerText.length > 30 || paragraph.innerText.length === null) {
-//       paragraph.addEventListener('mouseover', function() {
-//           currentParagraph = paragraph.innerText;
-//           paragraph.style.backgroundColor = 'rgba(117, 184, 200, .1)';
-//           paragraph.style.borderRadius = '5px';
-//           paragraph.style.zIndex = '998';
-//           clearTimeout(timer);
-//           var rect = paragraph.getBoundingClientRect();
-//           let left = rect.left - 50;
-//           hoverButton = document.getElementById('button-15');
-//           hoverButton.style.display = 'block';
-//           hoverButton.classList.add('button-15');
-//           paragraph.appendChild(hoverButton);
-//       });
-
-//       paragraph.addEventListener('mouseout', function() {
-//           timer = setTimeout(function() {
-//             var button = document.getElementById('button-15');
-//             if (!button.matches(':hover')) {
-//               button.style.display = 'none';
-//             }
-//           }, 500); // Delay of 500 ms
-//           paragraph.style.backgroundColor = '#fff';
-//           paragraph.style.opacity = '1';
-//       });
-//     }
-//   });
-
-//   hoverButton.addEventListener('mouseover', function() {
-//     clearTimeout(timer);
-//     this.style.display = 'block';
-//   });
-
-//   hoverButton.addEventListener('mouseout', function() {
-//       var self = this;
-//       timer = setTimeout(function() {
-//           self.style.display = 'none';
-//       }, 1000);
-//   });
-
-//   hoverButton.addEventListener('click', function() {
-//       sanitizeAndProcessText(currentParagraph);
-//   }); 
-// }

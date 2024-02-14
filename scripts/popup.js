@@ -96,10 +96,11 @@ async function getCharacters(userInfo){
     const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${userInfo.id}`;
     const responseChar = await fetch(url);
     const dataChar = await responseChar.json();
-    const READING_TIME = getCharacterEstimation(dataChar.MAX_CHARACTERS);
+    const READING_TIME = getCharacterEstimation(dataChar.MAX_CHARACTERS, dataChar.characters);
 
     setCharacters = document.getElementById('characters');
     characters = document.createElement('span');
+    characters.style.fontSize = "12px";
     characters.textContent = `${dataChar.characters}/${dataChar.MAX_CHARACTERS} (~${Math.round(READING_TIME)} mins)`;
     pending.remove();
     setCharacters.appendChild(characters);
@@ -167,11 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function getCharacterEstimation(totalCharacters){
+function getCharacterEstimation(totalCharacters, currentCharacters){
     const AVG_CHARACTERS = 5;
     const AVG_WPM = 150;
 
-    const AVG_WORDS = totalCharacters / AVG_CHARACTERS;
+    const AVG_WORDS = (totalCharacters - currentCharacters) / AVG_CHARACTERS;
     const READING_TIME = AVG_WORDS / AVG_WPM;
     return READING_TIME;
 }

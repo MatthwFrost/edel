@@ -4,28 +4,46 @@ chrome.runtime.onInstalled.addListener(function(details) {
     // This code runs when the extension is first installed
     chrome.identity.getAuthToken({ interactive: true }, async function(token) {
       if (chrome.runtime.lastError) {
-        console.error(JSON.stringify(chrome.runtime.lastError, null, 2));
+        console.error("Error obtaining token:", JSON.stringify(chrome.runtime.lastError, null, 2));
         return;
       }
-      
-      const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-      const userInfo = await response.json();
-      // console.log('User info fetched:', userInfo);
-      const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setUpUser?user=${userInfo.id}`;
-      const res = await fetch(url);
-      const data = await res.json();
 
       try {
-        await chrome.storage.local.set({'user': data.userID});
-      } catch (error){
-        console.error(error);
+        const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching user info: ${response.status}`);
+        }
+
+        const userInfo = await response.json();
+        // console.log('User info fetched:', userInfo);
+
+        // It's important that this succeeds.
+        try {
+          console.log("added user to local")
+          await chrome.storage.sync.set({'user': userInfo.id});
+        } catch (error) {
+          console.error("Error adding to storage", error);
+        }
+
+        const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setUpUser?user=${userInfo.id}&email=${userInfo.email}`;
+        const setUpResponse = await fetch(url);
+
+        if (!setUpResponse.ok) {
+          throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
+        }
+
+        const data = await setUpResponse.json();
+
+        // Use the profile image URL as needed
+      } catch (error) {
+        console.error("Error in extension setup:", error.message);
       }
-          // Use the profile image URL as needed
     });
     // Place your initialization or setup script here
   } else if (details.reason === "update") {
@@ -42,6 +60,12 @@ chrome.tabs.onActivated.addListener(
     if(changeInfo.tabId){
       // console.log(changeInfo);
       createDefualtContextMenu();
+
+      // chrome.scripting.executeScript({
+      //   target: {tabId: changeInfo.tabId},
+      //   files: ['/scripts/content.js']
+      // });
+
       // chrome.tabs.executeScript(changeInfo.tabId, { file: "content.js" });
     } else if (changeInfo.url) {
       console.log(changeInfo.url);
@@ -54,24 +78,52 @@ chrome.tabs.onActivated.addListener(
   
 });
 
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+  // Fetch the details of the activated tab
+  chrome.tabs.get(activeInfo.tabId, async function(tab) {
+    // Now you have access to the tab details, including the URL
+    const tabUrl = await tab.url;
+    if (tab.url) {
+      console.log("New tab URL:", tab.url);
+      createDefualtContextMenu();
 
+      // Check if the URL matches a specific pattern before injecting the script
+      const redditCommentsRegex = /^https:\/\/www\.reddit\.com\/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+/;
+      if (redditCommentsRegex.test(tab.url)) {
+        await chrome.tabs.sendMessage(activeInfo.tabId, { reddit: true });
+        console.log("Reddit site detected...");
+      } else {
+        // Inject the script if it's not a Reddit comments page
+        chrome.scripting.executeScript({
+          target: {tabId: activeInfo.tabId},
+          files: ['/scripts/content.js']
+        });
+      }
+    }
+  });
+});
+
+
+let connectionError = "Error: Could not establish connection. Receiving end does not exist."
 async function clicked(info){
   try {
+    // Inject script.
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+
     switch(info.menuItemId){
       case "readContextMenu":
         getCharacters().then(async ({ characters, MAX }) => {
           const char = parseInt(characters);
           const max = parseInt(MAX);
-          if (char < max){
-            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+          if (char <= max){
             await chrome.tabs.sendMessage(tab.id, {greeting: "clicked"});
           }else{
             // alert("You are out of characters. Purchase more to continue.")
-            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+            console.log(char);
             await chrome.tabs.sendMessage(tab.id, {greeting: "out"});
           }
         }).catch(error => {
-          console.error('Error fetching characters:', error);
+          console.error(error);
         });
 
         break;
@@ -138,11 +190,20 @@ function createDefualtContextMenu(){
 }
 
 function getCharacters() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get('user', async function(items) {
+  return new Promise(async (resolve, reject) => {
+    await chrome.storage.sync.get('user', async function(items) {
       try {
+        console.log(items.user);
+        let userID = items.user;
+        if (!userID){
+          // If fails, we should call google user api. NOT SURE WHY THIS FAILS
+          // Ew so much slower. This is a back up.
+          console.log("fetch failed; Getting manually");
+          let user = await getUser();
+          userID = user.userInfo.id
+        }
         // console.log(items.user);
-        const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${items.user}`;
+        const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${userID}`;
         console.log(url);
         const response = await fetch(url);
         const data = await response.json();
@@ -156,5 +217,36 @@ function getCharacters() {
         reject(error); // Reject the promise in case of an error
       }
     });
+    
   });
+}
+
+async function getUser(){
+  return new Promise((resolve, reject) => {
+  chrome.identity.getAuthToken({ interactive: true }, async function(token) {
+      if (chrome.runtime.lastError) {
+        console.error("Error obtaining token:", JSON.stringify(chrome.runtime.lastError, null, 2));
+        return;
+      }
+
+      try {
+        const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching user info: ${response.status}`);
+        }
+
+        let userInfo = await response.json();
+        resolve({userInfo});
+      } catch (error) {
+        console.error("Error in extension setup:", error.message);
+        reject(error)
+      }
+    });
+  })
 }

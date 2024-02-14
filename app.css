@@ -110,6 +110,7 @@ h1 {
     font-size: 14px;
     font-weight: normal;
     columns: #666;
+    margin-left: 5px;
 }
 .health-check {
     font-size: 14px;
