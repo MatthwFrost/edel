@@ -1,3 +1,4 @@
+
 // Runs when the user installs the extension.
 chrome.runtime.onInstalled.addListener(function(details) {
   if (details.reason === "install") {
@@ -228,7 +229,6 @@ async function getUser(){
         console.error("Error obtaining token:", JSON.stringify(chrome.runtime.lastError, null, 2));
         return;
       }
-
       try {
         const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
           method: 'GET',

@@ -14,7 +14,8 @@
     },
     "background": {
             "service_worker": "/scripts/background.js",
-            "permissions": true
+            "permissions": true,
+            "type": "module"
     },
     "icons": {
         "16": "/assets/newicon.png",
@@ -26,7 +27,8 @@
       {
         "matches": ["<all_urls>"],
         "js": ["/scripts/content.js"],
-        "run_at": "document_start"
+        "run_at": "document_start",
+        "type": "module"
       }
     ],
     "action": {

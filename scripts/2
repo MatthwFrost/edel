@@ -53,6 +53,12 @@ function sanitiseInput(text){
   }
 }
 
+// Stop audio source from playing
+function stopAudio(source){
+  source.stop();
+  chrome.runtime.sendMessage({action: false});
+  debugLog("Audio stopped");
+}
 
 // Main function.
 async function getSpeechElevenLabs(text) {
@@ -198,13 +204,6 @@ function playAudio(audioData, onEnded) {
     console.error('Error decoding audio data:', error);
     setError(error);
   });
-}
-
-// Stop audio source from playing
-function stopAudio(source){
-  source.stop();
-  chrome.runtime.sendMessage({action: false});
-  debugLog("Audio stopped");
 }
 
 // Turns the returned base64 from API, and turn into Audio ready array buffer.
