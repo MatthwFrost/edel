@@ -12,36 +12,36 @@ let source;
 let sentences;
 const MAX_CHARACTER_LENGTH = 100000;
 
-// Lets program keep track of counter when script is injected.
-
 // Too console.log or not to console.log
 const DEBUG = false;
 function debugLog(...message){
   DEBUG ? console.log(...message) : null;
 } 
 
-// Checks which option the user clicks on the context menu
-// Listens to background.js for a message.
-// Main. Begins whole program.
+/**
+  Listens for messages sent from the backend.
+  @params request includes what type of message is sent.
+  @return Initiats the correct function for the backend request.
+**/
 chrome.runtime.onMessage.addListener(function(request) {
   if (request.greeting === "clicked") {                   // Starts the audio fetching process.
-    let text = window.getSelection().toString().trim();
-    sanitiseInput(text);
+      beginAudioFetch()
   } else if (request.greeting === "stop") {
-    sentences = [];
-    stopAudio(source);
+      sentences = [];
+      stopAudio(source);
   } else if (request.greeting === "out"){
-    alert("Out of characters");
+      alert("Out of characters");
   } else if (request.reddit === true){
-    debugLog("REDDIT PAGE FOUND");
-    setRedditPlayButton();
+      debugLog("REDDIT PAGE FOUND");
+      setRedditPlayButton();
   }else if (request.install === "error"){
     alert("There has been an error with you install. Please contact our support.")
   }
 });
 
 // Sanitise the selected text and then return the corrected text. 
-function sanitiseInput(text){
+function beginAudioFetch(){
+  const text = window.getSelection().toString().trim(); // Get selected text
   sanitisedText = text.replace(/[^a-zA-Z0-9\s\.,;:'"!?(){}\[\]<>-]/g, '');
 
   if (sanitisedText.length < MAX_CHARACTER_LENGTH) {
@@ -54,12 +54,16 @@ function sanitiseInput(text){
 }
 
 
-// Main function.
+/**
+  Call AWS Lambda function, fetchAudio.
+  @param text - split into individual sentences.
+  @return Plays audio with web audio API
+**/
 async function getSpeechElevenLabs(text) {
   setCursorToWait();    // Let background.js know to set the "stop" context menu.
 
   chrome.runtime.sendMessage({action: true});   // Let background.js know to set the "stop" context menu.
-
+  
   sentences = splitIntoSentences(text);   // Split text into sentences. This is a simple regex-based approach.
 
   // Set variables for the loop.
@@ -74,7 +78,6 @@ async function getSpeechElevenLabs(text) {
     if (DEBUG) {
         start = Date.now();
     }
-    
 
     // Check if the if we've reached the end of the sentences array.
     if (currentSentenceIndex < sentences.length) {
@@ -117,6 +120,11 @@ async function getSpeechElevenLabs(text) {
   setCursorToDefault();
 }
 
+/**
+  Takes the length of the string.
+  @param the length of the string being read aloud.
+  @return GET to AWS lambda setCharacter function.
+**/
 async function setCharacter(length){
   chrome.storage.sync.get('user', function(result) {
     if (chrome.runtime.lastError) {
