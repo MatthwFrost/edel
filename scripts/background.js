@@ -1,4 +1,3 @@
-
 // Runs when the user installs the extension.
 chrome.runtime.onInstalled.addListener(function(details) {
   if (details.reason === "install") {
@@ -39,9 +38,14 @@ chrome.runtime.onInstalled.addListener(function(details) {
           throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
         }
 
-        const data = await setUpResponse.json();
-
-        // Use the profile image URL as needed
+        // chrome.tabs.query({}, function(tabs) { // Query all tabs
+        //   tabs.forEach(function(tab) {
+        //       chrome.tabs.reload(tab.id); // Reload each tab
+        //   });
+        // });
+        chrome.storage.local.set({reloadTabsOnActivate: true});
+        
+        // chrome.tabs.create({url: edelWebsiteUrl});
       } catch (error) {
         console.error("Error in extension setup:", error.message);
       }
@@ -49,12 +53,25 @@ chrome.runtime.onInstalled.addListener(function(details) {
     // Place your initialization or setup script here
   } else if (details.reason === "update") {
     // This code runs when the extension is updated
+    chrome.storage.local.set({reloadTabsOnActivate: true});
   }
 });
 
 chrome.contextMenus.onClicked.addListener(clicked);
 
-// This gets set 3 times. Bug in Chrome api? changeInfo is returning undefined.
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+  chrome.storage.local.get({reloadedTabs: []}, function(data) {
+      // Check if this tab has already been reloaded
+      if (!data.reloadedTabs.includes(activeInfo.tabId)) {
+          chrome.tabs.reload(activeInfo.tabId);
+
+          // Add this tab to the list of reloaded tabs and save
+          let updatedReloadedTabs = [...data.reloadedTabs, activeInfo.tabId];
+          chrome.storage.local.set({reloadedTabs: updatedReloadedTabs});
+      }
+  });
+});
+
 chrome.tabs.onActivated.addListener(
   async function(changeInfo){
     // console.log("New tab", changeInfo.tabId);
@@ -76,7 +93,6 @@ chrome.tabs.onActivated.addListener(
           console.log("Reddit site detected...")
       }
   }
-  
 });
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
@@ -118,12 +134,17 @@ async function clicked(info){
           const max = parseInt(MAX);
           if (char <= max){
             await chrome.tabs.sendMessage(tab.id, {greeting: "clicked"});
-          }else{
+          }else if (char >= max){
             // alert("You are out of characters. Purchase more to continue.")
             console.log(char);
-            await chrome.tabs.sendMessage(tab.id, {greeting: "out"});
+            await chrome.tabs.sendmessage(tab.id, {greeting: "out"});
+          } else {
+            
           }
-        }).catch(error => {
+        }).catch(async (error) => {
+          // You could refresh the page and then read from local storage to continue reading.
+          chrome.tabs.reload(tab.tabId);
+          // await chrome.tabs.sendmessage(tab.id, {error: "connection-error"});
           console.error(error);
         });
 
@@ -144,7 +165,7 @@ async function clicked(info){
 
 function initialize() {
   chrome.storage.local.get(['voiceID', 'qualityID'], function(items) {
-    voice = items.voiceID || 'old-british-man';
+    voice = items.voiceID || 'george';
     quality = items.qualityID || 'low';
 
     // console.log('Initialized voice and quality:', voice, quality);

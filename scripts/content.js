@@ -17,12 +17,12 @@ const DEBUG = false;
 function debugLog(...message){
   DEBUG ? console.log(...message) : null;
 } 
-
 /**
   Listens for messages sent from the backend.
   @params request includes what type of message is sent.
   @return Initiats the correct function for the backend request.
 **/
+
 chrome.runtime.onMessage.addListener(function(request) {
   if (request.greeting === "clicked") {                   // Starts the audio fetching process.
       beginAudioFetch()
@@ -36,6 +36,8 @@ chrome.runtime.onMessage.addListener(function(request) {
       setRedditPlayButton();
   }else if (request.install === "error"){
     alert("There has been an error with you install. Please contact our support.")
+  }else if (request.error === "connection-error"){
+    alert("There was an error, please try again.")
   }
 });
 
@@ -75,8 +77,9 @@ async function getSpeechElevenLabs(text) {
   async function playNextSentence() {
     
     // Timing FOR DEBUG.
+    let start;
     if (DEBUG) {
-        start = Date.now();
+      start = Date.now();
     }
 
     // Check if the if we've reached the end of the sentences array.
@@ -166,7 +169,7 @@ function splitIntoSentences(text) {
 function fetchVoiceAndQualitySettings() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['voiceID', 'qualityID'], function(items) {
-      const voice = items.voiceID || 'old-british-man';
+      const voice = items.voiceID || 'george';
       const quality = items.qualityID || 'low';
       resolve({ voice, quality });
     });
@@ -255,93 +258,93 @@ function setError(newError){
 // Checks if we are on a reddit comment section and then puts a play button there.
 // Logged out state is different to logged in state.
 
-document.addEventListener('DOMContentLoaded', function() {
-  let lastKnownUrl; 
-  let shouldAddButton;
-  // Also research observers.
-  const observer = new MutationObserver(mutations => {
-    for (let mutation of mutations) {
-      if (mutation.type === 'childList') {
-          // Check if the URL has actually changed
-          if (location.href !== lastKnownUrl) {
-              lastKnownUrl = location.href;
-              const redditCommentsRegex = /^https:\/\/www\.reddit\.com\/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+/;
-              if (redditCommentsRegex.test(this.location.href)) {
-                  // Perform your actions for Reddit comment URLs
-                  debugLog("Reddit site detected on tab");
-                  shouldAddButton = true;
-              }else {
-                shouldAddButton = false;
-              }
-          }
-      }
-      }
-      if (shouldAddButton) {
-        setRedditPlayButton();
-      }
-  });
-
-  observer.observe(document.body, {
-      childList: true,
-      subtree: true
-  });
-
-});
-
-function setRedditPlayButton() {
-  const postContent = document.querySelector('._21pmAV9gWG6F_UKVe7YIE0');
-  postContent.style = "display: flex; justify-content: center' align-items: center;"
-    // const buttonContainer = document.querySelector('._1hwEKkB_38tIoal6fcdrt9');
-  if (postContent) {
-      // Check if the play button already exists
-      if (!postContent.querySelector('.custom-play-button')) {
-          const playButton = document.createElement('button');
-          playButton.textContent = '▶ Play Edel';
-          playButton.classList.add('custom-play-button');
-          playButton.style = "font-size: 15px; margin-left: 10px"
-
-          // Event listener for the play button
-          playButton.addEventListener('click', () => {
-              // Logic to handle play button click
-              const postDetails = extractRedditPostDetails();
-              debugLog(postDetails.title, postDetails.text)
-              const text = `${postDetails.title}. ${postDetails.text}`
-              // if (text > MAX_CHARCTERS){
-                sanitiseInput(text);
-              // }else{
-              //   alert("You have reached max characters.")
-              // }
-          });
-
-          // Insert the play button
-          postContent.appendChild(playButton);
-      }
-  }
-}
-
-function extractRedditPostDetails() {
-  const titleElement = document.querySelector('._2SdHzo12ISmrC8H86TgSCp h1');
-  const title = titleElement ? titleElement.textContent : null;
-
-  const usernameElement = document.querySelector('[data-testid="post_author_link"]');
-  const username = usernameElement ? usernameElement.textContent : null;
-
-  // Define the CSS selector for the container holding the text
-  const textContainerSelector = '._3xX726aBn29LDbsDtzr_6E._1Ap4F5maDtT1E1YuCiaO0r.D3IL3FD0RFy_mkKLPwL4 ._292iotee39Lmt0MkQZ2hPV.RichTextJSON-root';
-
-  // Use the selector to find the container
-  const textContainer = document.querySelector(textContainerSelector);
-
-  // Initialize an empty string to hold the extracted text
-  let text = '';
-
-  // Check if the container is found
-  if (textContainer) {
-      // Extract and concatenate the text from each paragraph
-      textContainer.querySelectorAll('p').forEach(p => {
-          text += p.textContent.trim() + '\n\n';
-      });
-  }
-
-  return { title, username, text};
-}
+//document.addEventListener('DOMContentLoaded', function() {
+//  let lastKnownUrl; 
+//  let shouldAddButton;
+//  // Also research observers.
+//  const observer = new MutationObserver(mutations => {
+//    for (let mutation of mutations) {
+//      if (mutation.type === 'childList') {
+//          // Check if the URL has actually changed
+//          if (location.href !== lastKnownUrl) {
+//              lastKnownUrl = location.href;
+//              const redditCommentsRegex = /^https:\/\/www\.reddit\.com\/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+/;
+//              if (redditCommentsRegex.test(this.location.href)) {
+//                  // Perform your actions for Reddit comment URLs
+//                  debugLog("Reddit site detected on tab");
+//                  shouldAddButton = true;
+//              }else {
+//                shouldAddButton = false;
+//              }
+//          }
+//      }
+//      }
+//      if (shouldAddButton) {
+//        setRedditPlayButton();
+//      }
+//  });
+//
+//  observer.observe(document.body, {
+//      childList: true,
+//      subtree: true
+//  });
+//
+//});
+//
+//function setRedditPlayButton() {
+//  const postContent = document.querySelector('._21pmAV9gWG6F_UKVe7YIE0');
+//  postContent.style = "display: flex; justify-content: center' align-items: center;"
+//    // const buttonContainer = document.querySelector('._1hwEKkB_38tIoal6fcdrt9');
+//  if (postContent) {
+//      // Check if the play button already exists
+//      if (!postContent.querySelector('.custom-play-button')) {
+//          const playButton = document.createElement('button');
+//          playButton.textContent = '▶ Play Edel';
+//          playButton.classList.add('custom-play-button');
+//          playButton.style = "font-size: 15px; margin-left: 10px"
+//
+//          // Event listener for the play button
+//          playButton.addEventListener('click', () => {
+//              // Logic to handle play button click
+//              const postDetails = extractRedditPostDetails();
+//              debugLog(postDetails.title, postDetails.text)
+//              const text = `${postDetails.title}. ${postDetails.text}`
+//              // if (text > MAX_CHARCTERS){
+//                sanitiseInput(text);
+//              // }else{
+//              //   alert("You have reached max characters.")
+//              // }
+//          });
+//
+//          // Insert the play button
+//          postContent.appendChild(playButton);
+//      }
+//  }
+//}
+//
+//function extractRedditPostDetails() {
+//  const titleElement = document.querySelector('._2SdHzo12ISmrC8H86TgSCp h1');
+//  const title = titleElement ? titleElement.textContent : null;
+//
+//  const usernameElement = document.querySelector('[data-testid="post_author_link"]');
+//  const username = usernameElement ? usernameElement.textContent : null;
+//
+//  // Define the CSS selector for the container holding the text
+//  const textContainerSelector = '._3xX726aBn29LDbsDtzr_6E._1Ap4F5maDtT1E1YuCiaO0r.D3IL3FD0RFy_mkKLPwL4 ._292iotee39Lmt0MkQZ2hPV.RichTextJSON-root';
+//
+//  // Use the selector to find the container
+//  const textContainer = document.querySelector(textContainerSelector);
+//
+//  // Initialize an empty string to hold the extracted text
+//  let text = '';
+//
+//  // Check if the container is found
+//  if (textContainer) {
+//      // Extract and concatenate the text from each paragraph
+//      textContainer.querySelectorAll('p').forEach(p => {
+//          text += p.textContent.trim() + '\n\n';
+//      });
+//  }
+//
+//  return { title, username, text};
+//}
