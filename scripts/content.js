@@ -10,6 +10,7 @@
 // Set this as global, need access to the bad boy's.
 let source;
 let sentences;
+let latest_sentence;
 const MAX_CHARACTER_LENGTH = 100000;
 
 // Too console.log or not to console.log
@@ -17,17 +18,17 @@ const DEBUG = false;
 function debugLog(...message){
   DEBUG ? console.log(...message) : null;
 } 
+
 /**
   Listens for messages sent from the backend.
   @params request includes what type of message is sent.
   @return Initiats the correct function for the backend request.
 **/
-
 chrome.runtime.onMessage.addListener(function(request) {
   if (request.greeting === "clicked") {                   // Starts the audio fetching process.
-      beginAudioFetch()
+      const text = window.getSelection().toString().trim(); // Get selected text
+      beginAudioFetch(text)
   } else if (request.greeting === "stop") {
-      sentences = [];
       stopAudio(source);
   } else if (request.greeting === "out"){
       alert("Out of characters");
@@ -42,9 +43,9 @@ chrome.runtime.onMessage.addListener(function(request) {
 });
 
 // Sanitise the selected text and then return the corrected text. 
-function beginAudioFetch(){
-  const text = window.getSelection().toString().trim(); // Get selected text
-  sanitisedText = text.replace(/[^a-zA-Z0-9\s\.,;:'"!?(){}\[\]<>-]/g, '');
+function beginAudioFetch(text){
+  sanitisedText = text.replace(/[^a-zA-Z0-9\s\.,;:'"(){}\[\]!?]/g, '');
+
 
   if (sanitisedText.length < MAX_CHARACTER_LENGTH) {
     getSpeechElevenLabs(sanitisedText);
@@ -85,6 +86,7 @@ async function getSpeechElevenLabs(text) {
     // Check if the if we've reached the end of the sentences array.
     if (currentSentenceIndex < sentences.length) {
       sentence = sentences[currentSentenceIndex];
+      latest_sentence = sentence;
       let audioData;
 
       // Is there new audio to play?
@@ -169,7 +171,7 @@ function splitIntoSentences(text) {
 function fetchVoiceAndQualitySettings() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['voiceID', 'qualityID'], function(items) {
-      const voice = items.voiceID || 'george';
+      const voice = items.voiceID || 'robert';
       const quality = items.qualityID || 'low';
       resolve({ voice, quality });
     });
@@ -186,7 +188,7 @@ async function fetchTTS(sentence, currentSentenceIndex) {
     debugLog(url);
 
     const res = await fetch(url);
-    const data = await res.json();
+    const data = await res.json()
     return base64ToArrayBuffer(data.audioBase64);
   } catch (error) {
     console.error('Error in fetchTTS:', error);
@@ -213,6 +215,7 @@ function playAudio(audioData, onEnded) {
 
 // Stop audio source from playing
 function stopAudio(source){
+  sentences = [];
   source.stop();
   chrome.runtime.sendMessage({action: false});
   debugLog("Audio stopped");
@@ -252,6 +255,107 @@ function setError(newError){
     chrome.storage.local.set({'error': updatedErrorData});
   });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const article = document.querySelector("article");
+  let playing = false;
+
+  if (article) {
+    let text = "";
+    const elements = article.querySelectorAll("h1, p");
+    elements.forEach(element => {
+      text += element.textContent + " ";
+    });
+
+    const words = [...text.matchAll(/[^\s]+/g)];
+    const wordCount = words.length;
+    const readingTime = Math.round(wordCount / 200);
+
+    const timeBadge = document.createElement("p");
+    timeBadge.textContent = `⏱️ ${readingTime} min read`;
+
+    const playBadge = document.createElement("button");
+    let play = playBadge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="12px" height="12px" viewBox="-0.5 0 7 7" version="1.1">
+      <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+          <g id="Dribbble-Light-Preview" transform="translate(-347.000000, -3766.000000)" fill="#000000">
+              <g id="icons" transform="translate(56.000000, 160.000000)">
+                  <path d="M296.494737,3608.57322 L292.500752,3606.14219 C291.83208,3605.73542 291,3606.25002 291,3607.06891 L291,3611.93095 C291,3612.7509 291.83208,3613.26444 292.500752,3612.85767 L296.494737,3610.42771 C297.168421,3610.01774 297.168421,3608.98319 296.494737,3608.57322" id="play-[#1003]"></path>
+              </g>
+          </g>
+      </g>
+      </svg> 
+      Listen`
+
+    // playBadge.style.position = "fixed";
+    // playBadge.style.bottom = "20px"; // Distance from the bottom of the viewport
+    // playBadge.style.left = "20px"; // Distance from the right of the viewport
+
+    playBadge.style.backgroundColor = "#fef118";
+    playBadge.style.fontSize = "16px";
+    playBadge.style.margin = "5px";
+    playBadge.style.width = "100px";
+    playBadge.style.height= "30px";
+    playBadge.style.borderRadius = "999px";
+    playBadge.style.borderStyle = "none";
+    playBadge.style.display = "flex";
+    playBadge.style.alignItems = "center";
+    playBadge.style.justifyContent = "center";
+    playBadge.style.gap = "5px";
+    playBadge.style.zIndex = "10000px";
+    
+    playBadge.addEventListener('click', function(){
+      // console.log("clicked", text);
+      playing = !playing;
+      // beginAudioFetch(text);
+      if(playing){
+        playBadge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14px" height="14px" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.163 3.819C5 4.139 5 4.559 5 5.4v13.2c0 .84 0 1.26.163 1.581a1.5 1.5 0 0 0 .656.655c.32.164.74.164 1.581.164h.2c.84 0 1.26 0 1.581-.163a1.5 1.5 0 0 0 .656-.656c.163-.32.163-.74.163-1.581V5.4c0-.84 0-1.26-.163-1.581a1.5 1.5 0 0 0-.656-.656C8.861 3 8.441 3 7.6 3h-.2c-.84 0-1.26 0-1.581.163a1.5 1.5 0 0 0-.656.656zm9 0C14 4.139 14 4.559 14 5.4v13.2c0 .84 0 1.26.164 1.581a1.5 1.5 0 0 0 .655.655c.32.164.74.164 1.581.164h.2c.84 0 1.26 0 1.581-.163a1.5 1.5 0 0 0 .655-.656c.164-.32.164-.74.164-1.581V5.4c0-.84 0-1.26-.163-1.581a1.5 1.5 0 0 0-.656-.656C17.861 3 17.441 3 16.6 3h-.2c-.84 0-1.26 0-1.581.163a1.5 1.5 0 0 0-.655.656z" fill="#000000"/></svg> Pause`;
+
+        // Stops the audio from resarting from beginning.
+        if (latest_sentence){
+          let updatedParagraph = text.replace(latest_sentence, "").trim();
+          updatedParagraph = updatedParagraph.replace(/\s\s+/g, ' ');
+          text = updatedParagraph.replace(/\s+([,.!?])/g, '$1');
+        }
+
+        beginAudioFetch(text);
+      } else{
+        playBadge.innerHTML = play;
+        stopAudio(source);
+      }
+    })
+    // Create a container for the badges
+    const badgeContainer = document.createElement("div");
+    badgeContainer.style.display = "flex";
+    badgeContainer.style.alignItems = "center";
+    badgeContainer.style.marginTop = "20px";
+    badgeContainer.style.gap = "10px";
+    
+
+    // Append both badges to the container
+    badgeContainer.appendChild(timeBadge);
+    badgeContainer.appendChild(playBadge);
+
+    // Simplify the selection for where to place the badges
+    let insertAfterElement = article.querySelector("h1") || 
+                             article.querySelector("header") || 
+                             article.firstChild;
+
+    // Insert the badgeContainer into the article
+    if (insertAfterElement) {
+      if (insertAfterElement === article.firstChild) {
+        article.insertBefore(badgeContainer, insertAfterElement);
+      } else {
+        insertAfterElement.insertAdjacentElement("afterend", badgeContainer);
+      }
+    } else {
+      // Fallback if no insert point is found
+      article.appendChild(badgeContainer);
+    }
+  }
+});
+
+
+
 
 // REDDIT SECTION
 // ---------------------

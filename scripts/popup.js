@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get('defaultVoice', function(items) {
         if (items.defaultVoice === undefined){
             console.log('No defualt voice set');
-            defualtButtonVoice.textContent = 'George';
+            defualtButtonVoice.textContent = 'Robert';
             return;
         }else {
             defualtButtonVoice.textContent = items.defaultVoice;

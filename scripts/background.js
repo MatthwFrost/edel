@@ -1,3 +1,5 @@
+//import { getUser } from './helper/getUser.js'
+
 // Runs when the user installs the extension.
 chrome.runtime.onInstalled.addListener(function(details) {
   if (details.reason === "install") {
@@ -7,7 +9,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
         console.error("Error obtaining token:", JSON.stringify(chrome.runtime.lastError, null, 2));
         return;
       }
-
       try {
         const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
           method: 'GET',
@@ -165,7 +166,7 @@ async function clicked(info){
 
 function initialize() {
   chrome.storage.local.get(['voiceID', 'qualityID'], function(items) {
-    voice = items.voiceID || 'george';
+    voice = items.voiceID || 'robert';
     quality = items.qualityID || 'low';
 
     // console.log('Initialized voice and quality:', voice, quality);
@@ -218,7 +219,8 @@ function getCharacters() {
         console.log(items.user);
         let userID = items.user;
         if (!userID){
-          // If fails, we should call google user api. NOT SURE WHY THIS FAILS
+          // If fails, we should call google user api. 
+          //
           // Ew so much slower. This is a back up.
           console.log("fetch failed; Getting manually");
           let user = await getUser();
