@@ -102,7 +102,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     // Now you have access to the tab details, including the URL
     const tabUrl = await tab.url;
     if (tab.url) {
-      console.log("New tab URL:", tab.url);
+      // console.log("New tab URL:", tab.url);
       createDefualtContextMenu();
 
       // Check if the URL matches a specific pattern before injecting the script
@@ -222,13 +222,13 @@ function getCharacters() {
           // If fails, we should call google user api. 
           //
           // Ew so much slower. This is a back up.
-          console.log("fetch failed; Getting manually");
+          // console.log("fetch failed; Getting manually");
           let user = await getUser();
           userID = user.userInfo.id
         }
         // console.log(items.user);
         const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${userID}`;
-        console.log(url);
+        // console.log(url);
         const response = await fetch(url);
         const data = await response.json();
 

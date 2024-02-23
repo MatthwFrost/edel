@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "[DEV] Edel - AI Text-to-Speech.",
-    "version": "0.1",
+    "version": "1",
     "description": "[Early release] Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
     "permissions": [
       "storage",
@@ -9,7 +9,7 @@
       "identity"
     ],
     "oauth2": {
-      "client_id": "227012789435-45kjudjoj6aou6p2a5hdedg82nt5b35r.apps.googleusercontent.com",
+      "client_id": "227012789435-remc8dvdrrg302rg7ntdqac53u9lol77.apps.googleusercontent.com",
       "scopes": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"] 
     },
     "background": {
@@ -18,10 +18,10 @@
             "type": "module"
     },
     "icons": {
-        "16": "/assets/newicon.png",
-        "32": "/assets/newicon.png",
-        "48": "/assets/newicon.png",
-        "128": "/assets/newicon.png"
+        "16": "/assets/smallicon.png",
+        "32": "/assets/smallicon.png",
+        "48": "/assets/smallicon.png",
+        "128": "/assets/smallicon.png"
     },
     "content_scripts": [
       {

@@ -1,4 +1,4 @@
-# Edel v1 
+# Edel v0.2 
 Listen to text on a website by selecting, right click and click listen.
 
 ## Recent feature update
