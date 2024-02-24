@@ -6,18 +6,86 @@
 //  - Fetches the audio data for each sentence.
 //  - Plays the audio data for each sentence.
 
-
 // Set this as global, need access to the bad boy's.
-let source;
-let sentences;
-let latest_sentence;
-const MAX_CHARACTER_LENGTH = 100000;
+if (typeof source === 'undefined') {
+  let source;
+}
+if (typeof sentences === 'undefined') {
+  let sentences;
+}
 
+if (typeof latest_sentence === 'undefined') {
+  let latest_sentence;
+}
+let MAX_CHARACTER_LENGTH = 10000;
+const DEBUG = false
 // Too console.log or not to console.log
-const DEBUG = false;
 function debugLog(...message){
   DEBUG ? console.log(...message) : null;
 } 
+
+//Inject CSS for highlighting
+// const style = document.createElement('style');
+// style.textContent = `
+//   .highlight-text-hover {
+//     background-color: yellow !important;
+//     cursor: pointer;
+//   }
+// `;
+// document.head.appendChild(style);
+
+// // Function to handle mouse over
+// function handleMouseOver(event) {
+//   event.target.classList.add('highlight-text-hover');
+// }
+
+// // Function to handle mouse out
+// function handleMouseOut(event) {
+//   event.target.classList.remove('highlight-text-hover');
+// }
+
+// // Add event listeners to all elements that contain text
+// document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li').forEach(element => {
+//   element.addEventListener('mouseover', handleMouseOver);
+//   element.addEventListener('mouseout', handleMouseOut);
+//   element.addEventListener('click', function() {
+//     let text = this.textContent.trim()
+
+//     if (text.length < 10){
+//       console.log("sentence to short ");
+//       return
+//     }
+//     console.log('Text hovered over:', this.textContent.trim());
+//   });
+// });
+
+// // Injected CSS for highlighting
+// const style = document.createElement('style');
+// style.textContent = `
+//   .hover-highlight {
+//     background-color: yellow;
+//   }
+// `;
+// document.head.appendChild(style);
+
+// // Function to add hover listeners to paragraphs
+// function addHoverListeners() {
+//   const paragraphs = document.querySelectorAll('p'); // Simplified: targeting <p> elements
+//   paragraphs.forEach(p => {
+//     p.addEventListener('mouseenter', function() {
+//       this.classList.add('hover-highlight');
+//       console.log(this.textContent);
+//     });
+//     p.addEventListener('mouseleave', function() {
+//       this.classList.remove('hover-highlight');
+//     });
+//   });
+// }
+
+// Execute the function to add listeners
+addHoverListeners();
+
+
 
 /**
   Listens for messages sent from the backend.
@@ -27,6 +95,7 @@ function debugLog(...message){
 chrome.runtime.onMessage.addListener(function(request) {
   if (request.greeting === "clicked") {                   // Starts the audio fetching process.
       const text = window.getSelection().toString().trim(); // Get selected text
+      console.log("Clicked");
       beginAudioFetch(text)
   } else if (request.greeting === "stop") {
       stopAudio(source);
@@ -257,6 +326,9 @@ function setError(newError){
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+
+  console.log("DOM HAS LOADED");
+  // Inject CSS for hover effect
   const article = document.querySelector("article");
   let playing = false;
 
@@ -337,8 +409,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Simplify the selection for where to place the badges
     let insertAfterElement = article.querySelector("h1") || 
-                             article.querySelector("header") || 
-                             article.firstChild;
+                            article.querySelector("header") || 
+                            article.firstChild;
 
     // Insert the badgeContainer into the article
     if (insertAfterElement) {

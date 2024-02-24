@@ -6,16 +6,17 @@
     "permissions": [
       "storage",
       "contextMenus",
-      "identity"
+      "identity",
+      "scripting"
     ],
     "oauth2": {
-      "client_id": "227012789435-remc8dvdrrg302rg7ntdqac53u9lol77.apps.googleusercontent.com",
+      "client_id": "227012789435-45kjudjoj6aou6p2a5hdedg82nt5b35r.apps.googleusercontent.com",
       "scopes": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"] 
     },
     "background": {
-            "service_worker": "/scripts/background.js",
-            "permissions": true,
-            "type": "module"
+        "service_worker": "/scripts/background.js",
+        "permissions": true,
+        "type": "module"
     },
     "icons": {
         "16": "/assets/smallicon.png",
@@ -23,16 +24,12 @@
         "48": "/assets/smallicon.png",
         "128": "/assets/smallicon.png"
     },
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["/scripts/content.js"],
-        "run_at": "document_start",
-        "type": "module"
-      }
-    ],
-    "action": {
-        "default_popup": "index.html"
-      }
+    "action": { 
+      "default_popup": "index.html"
+     },
+    "host_permissions": [
+      "http://*/*",
+      "https://*/*"
+    ]
   }
   

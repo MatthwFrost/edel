@@ -1,4 +1,3 @@
-//import { getUser } from './helper/getUser.js'
 
 // Runs when the user installs the extension.
 chrome.runtime.onInstalled.addListener(function(details) {
@@ -39,14 +38,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
           throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
         }
 
-        // chrome.tabs.query({}, function(tabs) { // Query all tabs
-        //   tabs.forEach(function(tab) {
-        //       chrome.tabs.reload(tab.id); // Reload each tab
-        //   });
-        // });
-        chrome.storage.local.set({reloadTabsOnActivate: true});
-        
-        // chrome.tabs.create({url: edelWebsiteUrl});
       } catch (error) {
         console.error("Error in extension setup:", error.message);
       }
@@ -54,79 +45,46 @@ chrome.runtime.onInstalled.addListener(function(details) {
     // Place your initialization or setup script here
   } else if (details.reason === "update") {
     // This code runs when the extension is updated
-    chrome.storage.local.set({reloadTabsOnActivate: true});
+    // chrome.storage.local.set({reloadTabsOnActivate: true});
   }
 });
 
+// Listen for a context menu click.
 chrome.contextMenus.onClicked.addListener(clicked);
-
-chrome.tabs.onActivated.addListener(function(activeInfo) {
-  chrome.storage.local.get({reloadedTabs: []}, function(data) {
-      // Check if this tab has already been reloaded
-      if (!data.reloadedTabs.includes(activeInfo.tabId)) {
-          chrome.tabs.reload(activeInfo.tabId);
-
-          // Add this tab to the list of reloaded tabs and save
-          let updatedReloadedTabs = [...data.reloadedTabs, activeInfo.tabId];
-          chrome.storage.local.set({reloadedTabs: updatedReloadedTabs});
-      }
-  });
-});
 
 chrome.tabs.onActivated.addListener(
   async function(changeInfo){
+    console.log(changeInfo);
     // console.log("New tab", changeInfo.tabId);
     if(changeInfo.tabId){
-      // console.log(changeInfo);
+      chrome.scripting.executeScript({
+        target: {tabId: changeInfo.tabId},
+        files: ["scripts/content.js"]
+      })
+
+      console.log(changeInfo);
       createDefualtContextMenu();
+    }
+});
 
-      // chrome.scripting.executeScript({
-      //   target: {tabId: changeInfo.tabId},
-      //   files: ['/scripts/content.js']
-      // });
-
-      // chrome.tabs.executeScript(changeInfo.tabId, { file: "content.js" });
-    } else if (changeInfo.url) {
-      console.log(changeInfo.url);
-      const redditCommentsRegex = /^https:\/\/www\.reddit\.com\/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+/; // Thanks GPT
-      if (redditCommentsRegex.test(changeInfo.url)) {
-          await chrome.tabs.sendMessage(tabPlay.id, { reddit: true });
-          console.log("Reddit site detected...")
-      }
+// inject when tab is refreshed.
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if (changeInfo.status === 'complete') {
+    // Check if the URL matches specific criteria
+    chrome.scripting.executeScript({
+      target: {tabId: tabId},
+      files: ["scripts/content.js"]
+    })
   }
 });
-
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  // Fetch the details of the activated tab
-  chrome.tabs.get(activeInfo.tabId, async function(tab) {
-    // Now you have access to the tab details, including the URL
-    const tabUrl = await tab.url;
-    if (tab.url) {
-      // console.log("New tab URL:", tab.url);
-      createDefualtContextMenu();
-
-      // Check if the URL matches a specific pattern before injecting the script
-      const redditCommentsRegex = /^https:\/\/www\.reddit\.com\/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+/;
-      if (redditCommentsRegex.test(tab.url)) {
-        await chrome.tabs.sendMessage(activeInfo.tabId, { reddit: true });
-        console.log("Reddit site detected...");
-      } else {
-        // Inject the script if it's not a Reddit comments page
-        chrome.scripting.executeScript({
-          target: {tabId: activeInfo.tabId},
-          files: ['/scripts/content.js']
-        });
-      }
-    }
-  });
-});
-
 
 let connectionError = "Error: Could not establish connection. Receiving end does not exist."
 async function clicked(info){
   try {
     // Inject script.
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+
+    console.log("Clicked");
 
     switch(info.menuItemId){
       case "readContextMenu":
