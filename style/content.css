@@ -1,0 +1,17 @@
+
+.play-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 30px;
+    height: 30px;
+    background-color: #007BFF; /* Blue background */
+    color: white;
+    text-align: center;
+    line-height: 60px; /* Center the text vertically */
+    border-radius: 50% 50% 0 50%; /* Full radius on all corners except bottom left */
+    cursor: pointer;
+    font-size: 24px; /* Larger font size */
+    user-select: none; /* Prevent text selection */
+    border: none; /* Remove border */
+}

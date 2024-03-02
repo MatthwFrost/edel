@@ -1,35 +1,47 @@
 {
-    "manifest_version": 3,
-    "name": "[DEV] Edel - AI Text-to-Speech.",
-    "version": "1",
-    "description": "[Early release] Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
-    "permissions": [
-      "storage",
-      "contextMenus",
-      "identity",
-      "scripting"
-    ],
-    "oauth2": {
-      "client_id": "227012789435-45kjudjoj6aou6p2a5hdedg82nt5b35r.apps.googleusercontent.com",
-      "scopes": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"] 
-    },
-    "background": {
-        "service_worker": "/scripts/background.js",
-        "permissions": true,
-        "type": "module"
-    },
-    "icons": {
-        "16": "/assets/smallicon.png",
-        "32": "/assets/smallicon.png",
-        "48": "/assets/smallicon.png",
-        "128": "/assets/smallicon.png"
-    },
-    "action": { 
-      "default_popup": "index.html"
-     },
-    "host_permissions": [
-      "http://*/*",
-      "https://*/*"
+  "manifest_version": 3,
+  "name": "Edel: AI Text-to-Speech",
+  "version": "1.1.1",
+  "description": "[Early release] Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "identity",
+    "scripting"
+  ],
+  "oauth2": {
+    "client_id": "227012789435-asa85andjkldbbc0f6lljbgl3st71mdc.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email"
     ]
-  }
-  
+  },
+  "background": {
+    "service_worker": "/scripts/background.js",
+    "permissions": true,
+    "type": "module"
+  },
+  "icons": {
+    "16": "/assets/newicon.png",
+    "32": "/assets/newicon.png",
+    "48": "/assets/newicon.png",
+    "128": "/assets/newicon.png"
+  },
+  "action": {
+    "default_popup": "index.html"
+  },
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "mystyles.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

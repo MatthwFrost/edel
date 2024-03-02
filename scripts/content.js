@@ -7,84 +7,124 @@
 //  - Plays the audio data for each sentence.
 
 // Set this as global, need access to the bad boy's.
-if (typeof source === 'undefined') {
-  let source;
-}
-if (typeof sentences === 'undefined') {
-  let sentences;
-}
+// Check if the script has already been injected
 
-if (typeof latest_sentence === 'undefined') {
+if (typeof(source) === 'undefined') {
+  let source;
+} 
+if (typeof(sentences) === 'undefined') {
+  let sentences;
+} 
+if (typeof(latest_sentence) === 'undefined') {
   let latest_sentence;
-}
-let MAX_CHARACTER_LENGTH = 10000;
-const DEBUG = false
+} 
+
+
 // Too console.log or not to console.log
 function debugLog(...message){
   DEBUG ? console.log(...message) : null;
 } 
 
-//Inject CSS for highlighting
-// const style = document.createElement('style');
-// style.textContent = `
-//   .highlight-text-hover {
-//     background-color: yellow !important;
-//     cursor: pointer;
-//   }
-// `;
-// document.head.appendChild(style);
+let DEBUG = false;
+const tags = ['h1', 'p', 'li']; // Define the tags you're interested in
+let combinedText = ''; // String to hold the combined text content
 
-// // Function to handle mouse over
-// function handleMouseOver(event) {
-//   event.target.classList.add('highlight-text-hover');
+tags.forEach(tag => {
+    const elements = document.querySelectorAll(tag); // Get all elements for the current tag
+    elements.forEach(element => {
+        combinedText += element.innerText + " "; // Concatenate the text content with a space
+    });
+});
+
+// console.log("Amount of text", combinedText.length); // Log the combined text to the console
+
+if (combinedText.length > 30){
+  // Create the play button container
+  var playButtonContainer = document.createElement('div');
+  playButtonContainer.style.position = 'fixed';
+  playButtonContainer.style.bottom = '100px';
+  playButtonContainer.style.right = '20px';
+  playButtonContainer.style.height = '40px';
+  playButtonContainer.style.backgroundColor = '#FFF407'; // Example color
+  playButtonContainer.style.borderRadius = '30px 30px 0 30px'; // Rounded edges
+  playButtonContainer.style.display = 'flex';
+  playButtonContainer.style.justifyContent = 'center';
+  playButtonContainer.style.alignItems = 'center';
+  playButtonContainer.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+  playButtonContainer.style.cursor = 'pointer';
+  playButtonContainer.style.zIndex = '1000'; // Ensure it's above most elements
+  playButtonContainer.style.transition = 'width 0.5s ease'; // Smooth transition for width
+  playButtonContainer.style.overflow = 'hidden'; // Hide overflow content
+  playButtonContainer.style.width = '40px'; // Initial width
+
+  // Create the play icon using SVG
+  var playIcon = document.createElement('div');
+  playIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  playIcon.paddingLeft = '25px';
+  // Adjustments to playIcon for centering, if necessary
+  playIcon.style.margin = '3px 0px 0px 3px'; // Center horizontally
+  playIcon.style.display = 'block';
+  playButtonContainer.appendChild(playIcon);
+
+  // Create the text label for "Play"
+  var playLabel = document.createElement('span');
+  playLabel.textContent = 'Play';
+  playLabel.style.fontFamily = 'Circular,-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif';
+  playLabel.style.marginLeft = '10px';
+  playLabel.style.fontWeight = 'bold';
+  playLabel.style.display = 'none'; // Initially hidden
+  playButtonContainer.appendChild(playLabel);
+
+  // Expand button and show label on hover
+  playButtonContainer.addEventListener('mouseenter', function() {
+      playButtonContainer.style.width = '100px'; // Initial width
+      playLabel.style.display = 'block'; // Hide label
+  });
+
+  // Collapse button and hide label on mouse leave
+  playButtonContainer.addEventListener('mouseleave', function() {
+      playButtonContainer.style.width = '40px'; // Initial width
+      playLabel.style.display = 'none'; // Hide label
+  });
+
+  // Add functionality to the button (e.g., playing audio)
+  playing = false;
+  playButtonContainer.addEventListener('click', function() {
+    playing = !playing;
+    // console.log('Play button clicked');
+    // Add your play functionality here
+
+    if (!playing){
+      playIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+      playIcon.style.margin = '3px 0px 0px 3px'; // Center horizontally
+      playLabel.textContent = 'Play';
+      playButtonContainer.appendChild(playIcon);
+      playButtonContainer.appendChild(playLabel);
+      stopAudio(source);
+      playing = false;
+    }else {
+      playIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause"><rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/></svg>'
+      playIcon.style.margin = '3px 0px 0px 0px'; // Center horizontally
+      playLabel.textContent = 'Pause';
+      playButtonContainer.appendChild(playIcon);
+      playButtonContainer.appendChild(playLabel);
+      beginAudioFetch(combinedText);
+      playing = true;
+    }
+  });
+
+  // Append the play button container to the body
+  document.body.appendChild(playButtonContainer);
+}
+
+// // Function to highlight a specific sentence on the page
+// function highlightSentence(sentence) {
+//   const bodyText = document.body.innerHTML;
+//   const highlightedText = `<span style="background-color: yellow;">${sentence}</span>`;
+//   // Replace the first occurrence of the sentence in the page with the highlighted version
+//   const updatedText = bodyText.replace(sentence, highlightedText);
+//   document.body.innerHTML = updatedText;
 // }
-
-// // Function to handle mouse out
-// function handleMouseOut(event) {
-//   event.target.classList.remove('highlight-text-hover');
-// }
-
-// // Add event listeners to all elements that contain text
-// document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li').forEach(element => {
-//   element.addEventListener('mouseover', handleMouseOver);
-//   element.addEventListener('mouseout', handleMouseOut);
-//   element.addEventListener('click', function() {
-//     let text = this.textContent.trim()
-
-//     if (text.length < 10){
-//       console.log("sentence to short ");
-//       return
-//     }
-//     console.log('Text hovered over:', this.textContent.trim());
-//   });
-// });
-
-// // Injected CSS for highlighting
-// const style = document.createElement('style');
-// style.textContent = `
-//   .hover-highlight {
-//     background-color: yellow;
-//   }
-// `;
-// document.head.appendChild(style);
-
-// // Function to add hover listeners to paragraphs
-// function addHoverListeners() {
-//   const paragraphs = document.querySelectorAll('p'); // Simplified: targeting <p> elements
-//   paragraphs.forEach(p => {
-//     p.addEventListener('mouseenter', function() {
-//       this.classList.add('hover-highlight');
-//       console.log(this.textContent);
-//     });
-//     p.addEventListener('mouseleave', function() {
-//       this.classList.remove('hover-highlight');
-//     });
-//   });
-// }
-
-// Execute the function to add listeners
-addHoverListeners();
-
 
 
 /**
@@ -95,12 +135,12 @@ addHoverListeners();
 chrome.runtime.onMessage.addListener(function(request) {
   if (request.greeting === "clicked") {                   // Starts the audio fetching process.
       const text = window.getSelection().toString().trim(); // Get selected text
-      console.log("Clicked");
+      // console.log("Clicked");
       beginAudioFetch(text)
   } else if (request.greeting === "stop") {
       stopAudio(source);
   } else if (request.greeting === "out"){
-      alert("Out of characters");
+      alert("Edel has ran out of characters");
   } else if (request.reddit === true){
       debugLog("REDDIT PAGE FOUND");
       setRedditPlayButton();
@@ -114,8 +154,8 @@ chrome.runtime.onMessage.addListener(function(request) {
 // Sanitise the selected text and then return the corrected text. 
 function beginAudioFetch(text){
   sanitisedText = text.replace(/[^a-zA-Z0-9\s\.,;:'"(){}\[\]!?]/g, '');
-
-
+  // console.log(sanitisedText.length);
+  const MAX_CHARACTER_LENGTH = 1000000;
   if (sanitisedText.length < MAX_CHARACTER_LENGTH) {
     getSpeechElevenLabs(sanitisedText);
   } else {
@@ -123,7 +163,7 @@ function beginAudioFetch(text){
     console.error(`Invalid selection. Can't be greater than 1000 characters. (You selected ${sanitisedText.length})`);
     setError('Too many characters selected.');
   }
-}
+};
 
 
 /**
@@ -154,30 +194,40 @@ async function getSpeechElevenLabs(text) {
 
     // Check if the if we've reached the end of the sentences array.
     if (currentSentenceIndex < sentences.length) {
-      sentence = sentences[currentSentenceIndex];
-      latest_sentence = sentence;
-      let audioData;
+      // highlightSentence(sentence);
+      await chrome.runtime.sendMessage({action: 'getCredits', amount: sentences[currentSentenceIndex].length }, async function(response){
+        if (response.message === 'OUTOFCREDITS'){
+          alert("Sorry, Edel has ran out of credits.");
+        }else if(response.message === 'ok'){
+          let sentence = sentences[currentSentenceIndex];
 
-      // Is there new audio to play?
-      if (nextAudioData) {
-        audioData = nextAudioData;              // Use prefetched audio
-        nextAudioData = null;                   // Reset prefetch audio
-      } else {
-        audioData = await fetchTTS(sentence, currentSentenceIndex);   // Fetch TTS for the current sentence if not prefetched
-      }
+        latest_sentence = sentence;
+        let audioData;
 
-      playAudio(audioData, async () => {
-        currentSentenceIndex++;
-        await playNextSentence();               // Play next sentence after current one ends
+        // Is there new audio to play?
+        if (nextAudioData) {
+          audioData = nextAudioData;              // Use prefetched audio
+          nextAudioData = null;                   // Reset prefetch audio
+        } else {
+          audioData = await fetchTTS(sentence, currentSentenceIndex);   // Fetch TTS for the current sentence if not prefetched
+        }
+
+        playAudio(audioData, async () => {
+          currentSentenceIndex++;
+          await playNextSentence();               // Play next sentence after current one ends
+        });
+
+        await setCharacter(sentence.length)
+
+        // FOR DEBUG
+        debugLog(`Playing sentence ${currentSentenceIndex + 1} of ${sentences.length}`);
+        const end = Date.now();
+        debugLog(`Execution time: ${end - start} ms`);
+        await prefetchNextSentence();             // Prefetch the next sentence
+          } else {
+            alert("There has been an error.")
+          }
       });
-
-      await setCharacter(sentence.length)
-
-      // FOR DEBUG
-      debugLog(`Playing sentence ${currentSentenceIndex + 1} of ${sentences.length}`);
-      const end = Date.now();
-      debugLog(`Execution time: ${end - start} ms`);
-      await prefetchNextSentence();             // Prefetch the next sentence
     } else {
       // All sentences have been played
       chrome.runtime.sendMessage({action: false});
@@ -253,7 +303,7 @@ async function fetchTTS(sentence, currentSentenceIndex) {
     const { voice, quality } = await fetchVoiceAndQualitySettings();
     debugLog('Using voice and quality:', voice, quality);
 
-    let url = `https://x6oh96vkd8.execute-api.eu-central-1.amazonaws.com/fetchAudioAPI/?sentence=${sentence}&index=${currentSentenceIndex}&voice=${voice}&quality=${quality}`;
+    let url = `https://x6oh96vkd8.execute-api.eu-central-1.amazonaws.com/fetchAudioAPI/fetchAudio?sentence=${sentence}&index=${currentSentenceIndex}&voice=${voice}&quality=${quality}`;
     debugLog(url);
 
     const res = await fetch(url);

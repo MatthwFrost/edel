@@ -1,47 +1,65 @@
 
+
 // Runs when the user installs the extension.
-chrome.runtime.onInstalled.addListener(function(details) {
+chrome.runtime.onInstalled.addListener(async function(details) {
   if (details.reason === "install") {
     // This code runs when the extension is first installed
-    chrome.identity.getAuthToken({ interactive: true }, async function(token) {
-      if (chrome.runtime.lastError) {
-        console.error("Error obtaining token:", JSON.stringify(chrome.runtime.lastError, null, 2));
-        return;
+    const REDIRECT_URL = chrome.identity.getRedirectURL();
+    // console.log(REDIRECT_URL);
+    // const REDIRECT_URL = "https://www.google.com";
+    const clientID =
+    "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com";
+    const scopes = ["openid", "email", "profile"];
+    // console.log(REDIRECT_URL);
+    let authURL = "https://accounts.google.com/o/oauth2/auth";
+    authURL += `?client_id=${clientID}`;
+    authURL += `&response_type=token`;
+    authURL += `&redirect_uri=${encodeURIComponent(REDIRECT_URL)}`;
+    authURL += `&scope=${encodeURIComponent(scopes.join(" "))}`;
+    authURL += `&prompt=select_account`;
+    chrome.identity.launchWebAuthFlow(
+      {
+        url: authURL,
+        interactive: true,
+      },
+      async function(redirectUrl) {
+        // console.log('Redirect URL:', redirectUrl);
+        // Extract the token from the redirect URL.
+        if (redirectUrl) {
+          const url = new URL(redirectUrl);
+          const hashParams = new URLSearchParams(url.hash.substring(1)); // Remove the '#' at the start.
+          const accessToken = hashParams.get('access_token');
+          await chrome.storage.sync.set({'accessToken': accessToken});
+          const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`Error fetching user info: ${response.status}`);
+          }
+
+          const userInfo = await response.json();
+          try {
+            await chrome.storage.sync.set({'user': userInfo.id});
+            console.log("added user to local")
+          } catch (error) {
+            console.error("Error adding to storage", error);
+          }
+
+          const urlAWS = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setUpUser?user=${userInfo.id}&email=${userInfo.email}`;
+          const setUpResponse = await fetch(urlAWS);
+
+          if (!setUpResponse.ok) {
+            throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
+          }
+
+        } else {
+          console.error('OAuth2 login failed or was cancelled.');
+        }
       }
-      try {
-        const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error fetching user info: ${response.status}`);
-        }
-
-        const userInfo = await response.json();
-        // console.log('User info fetched:', userInfo);
-
-        // It's important that this succeeds.
-        try {
-          console.log("added user to local")
-          await chrome.storage.sync.set({'user': userInfo.id});
-        } catch (error) {
-          console.error("Error adding to storage", error);
-        }
-
-        const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setUpUser?user=${userInfo.id}&email=${userInfo.email}`;
-        const setUpResponse = await fetch(url);
-
-        if (!setUpResponse.ok) {
-          throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
-        }
-
-      } catch (error) {
-        console.error("Error in extension setup:", error.message);
-      }
-    });
+    );
     // Place your initialization or setup script here
   } else if (details.reason === "update") {
     // This code runs when the extension is updated
@@ -61,8 +79,8 @@ chrome.tabs.onActivated.addListener(
         target: {tabId: changeInfo.tabId},
         files: ["scripts/content.js"]
       })
-
-      console.log(changeInfo);
+      const tabID = changeInfo.id
+      await chrome.storage.sync.set({tabID: true});
       createDefualtContextMenu();
     }
 });
@@ -96,9 +114,7 @@ async function clicked(info){
           }else if (char >= max){
             // alert("You are out of characters. Purchase more to continue.")
             console.log(char);
-            await chrome.tabs.sendmessage(tab.id, {greeting: "out"});
-          } else {
-            
+            await chrome.tabs.sendMessage(tab.id, {greeting: "out"});
           }
         }).catch(async (error) => {
           // You could refresh the page and then read from local storage to continue reading.
@@ -147,7 +163,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ message: "Acknowledged the loading of Reddit script" });
       const [tabPlay] = chrome.tabs.query({active: true, currentWindow: true});
       chrome.tabs.sendMessage(tabPlay.id, {reddit: true});
+  } else if (message.action === "getCredits"){
+    getCharacters().then(async ({ characters, MAX }) => {
+
+      const char = parseInt(characters);
+      const max = parseInt(MAX);
+      console.log(message.amount);
+      if (message.amount){
+        const characterCountOnceFinished = char + message.amount;
+        console.log(characterCountOnceFinished);
+        if (characterCountOnceFinished <= max){
+          sendResponse({ message: "ok" })
+        }
+      }
+
+      if (char <= max){
+        sendResponse({ message: "ok"});
+      }else if (char >= max){
+        // alert("You are out of characters. Purchase more to continue.")
+        console.log(char);
+        sendResponse({ message: "OUTOFCREDITS" });
+      }
+    }).catch(async (error) => {
+      // You could refresh the page and then read from local storage to continue reading.
+      chrome.tabs.reload(tab.tabId);
+      // await chrome.tabs.sendmessage(tab.id, {error: "connection-error"});
+      console.error(error);
+    });
   }
+  return true;
 });
 
 function playingState() {
@@ -205,7 +249,7 @@ function getCharacters() {
 
 async function getUser(){
   return new Promise((resolve, reject) => {
-  chrome.identity.getAuthToken({ interactive: true }, async function(token) {
+    chrome.storage.sync.get('accessToken', async function(items) {
       if (chrome.runtime.lastError) {
         console.error("Error obtaining token:", JSON.stringify(chrome.runtime.lastError, null, 2));
         return;
@@ -214,7 +258,7 @@ async function getUser(){
         const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${items.accessToken}`,
           },
         });
 

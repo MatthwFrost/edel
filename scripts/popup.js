@@ -53,36 +53,26 @@ function updateHealthIcon() {
     });
 }
 
+// Move this function to 
 async function getUser(){
-    chrome.identity.getAuthToken({ interactive: true }, async function(token) {
+    await chrome.storage.sync.get('user', async function(items) {
+        console.log("GET USER",items.user);
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError);
           return;
         }
-        fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        })
-        .then(response => response.json())
-        .then(userInfo =>  {
-            getCharacters(userInfo);
-            const profileImageUrl = userInfo.picture;
-            
-            let setProfileImage = document.createElement('img');
-            setProfileImage.src = profileImageUrl;
-            setProfileImage.className = 'nav-img';
+        getCharacters(items.user);
+        // const profileImageUrl = userInfo.picture;
+        
+        // let setProfileImage = document.createElement('img');
+        // setProfileImage.src = profileImageUrl;
+        // setProfileImage.className = 'nav-img';
 
-            let pDiv = document.getElementById('nav-user-icon');
-            pDiv.appendChild(setProfileImage);
+        // let pDiv = document.getElementById('nav-user-icon');
+        // pDiv.appendChild(setProfileImage);
 
           // Use the profile image URL as needed
         })
-        .catch(error => {
-          console.error('Error fetching user info:', error);
-        });
-      });
     return;
 }
 
@@ -93,7 +83,7 @@ async function getCharacters(userInfo){
     pending.textContent = "Pending...";
     setCharacters.appendChild(pending);
 
-    const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${userInfo.id}`;
+    const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${userInfo}`;
     const responseChar = await fetch(url);
     const dataChar = await responseChar.json();
     const READING_TIME = getCharacterEstimation(dataChar.MAX_CHARACTERS, dataChar.characters);
