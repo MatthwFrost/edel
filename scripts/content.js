@@ -1,31 +1,26 @@
-// Handles most of the application logic.
-// ---------------------------------------------
-// What happens:
-//  - Gets the text selection and then 'sanitises' it. --- There's a need for more complicated 'sanitise' function.
-//  - Splits the text into sentences.
-//  - Fetches the audio data for each sentence.
-//  - Plays the audio data for each sentence.
+// Pause button doesn't pause context menu audio.
 
-// Set this as global, need access to the bad boy's.
-// Check if the script has already been injected
+// Set global variables.
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const gainNode = audioCtx.createGain();
+gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+let offset;
+let audioController;
+let cont;
+let volumeControl;
+let arrayBuffer;
+let playbackPosition = 0; // Track playback position
+let buttonDiv;
+let volume;
+let isButtonInejcted = false;
 
-if (typeof(source) === 'undefined') {
-  let source;
-} 
-if (typeof(sentences) === 'undefined') {
-  let sentences;
-} 
-if (typeof(latest_sentence) === 'undefined') {
-  let latest_sentence;
-} 
+let currentIndex = 0; // Tracks the current audio buffer to be played
+let sentences = []; // Global sentences array
+let audioBuffers = []; // Stores prefetched audio buffers
+let playing = false; // Tracks whether audio is currently playing
+let source = null; // Currently playing audio source
 
 
-// Too console.log or not to console.log
-function debugLog(...message){
-  DEBUG ? console.log(...message) : null;
-} 
-
-let DEBUG = false;
 const tags = ['h1', 'p', 'li']; // Define the tags you're interested in
 let combinedText = ''; // String to hold the combined text content
 
@@ -36,212 +31,441 @@ tags.forEach(tag => {
     });
 });
 
-// console.log("Amount of text", combinedText.length); // Log the combined text to the console
+// Inject audio player.
+// ----------------------------------------------------------------------------------
+function AudioPlayerButton(){
+    const DOM = document.body;
+    let show = false;
 
-if (combinedText.length > 30){
-  // Create the play button container
-  var playButtonContainer = document.createElement('div');
-  playButtonContainer.style.position = 'fixed';
-  playButtonContainer.style.bottom = '100px';
-  playButtonContainer.style.right = '20px';
-  playButtonContainer.style.height = '40px';
-  playButtonContainer.style.backgroundColor = '#FFF407'; // Example color
-  playButtonContainer.style.borderRadius = '30px 30px 0 30px'; // Rounded edges
-  playButtonContainer.style.display = 'flex';
-  playButtonContainer.style.justifyContent = 'center';
-  playButtonContainer.style.alignItems = 'center';
-  playButtonContainer.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-  playButtonContainer.style.cursor = 'pointer';
-  playButtonContainer.style.zIndex = '1000'; // Ensure it's above most elements
-  playButtonContainer.style.transition = 'width 0.5s ease'; // Smooth transition for width
-  playButtonContainer.style.overflow = 'hidden'; // Hide overflow content
-  playButtonContainer.style.width = '40px'; // Initial width
+    // Create audio container.
+    const audioContainer = document.createElement('div');
+    const root = audioContainer.attachShadow({mode: 'open'});
+    audioContainer.style.position = 'fixed';
+    // audioContainer.style.backgroundColor = "yellow";
+    audioContainer.style.bottom = '100px';
+    audioContainer.style.right = '40px';
+    audioContainer.style.height = '20px';
+    audioContainer.style.zIndex = '10000';
 
-  // Create the play icon using SVG
-  var playIcon = document.createElement('div');
-  playIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-  playIcon.paddingLeft = '25px';
-  // Adjustments to playIcon for centering, if necessary
-  playIcon.style.margin = '3px 0px 0px 3px'; // Center horizontally
-  playIcon.style.display = 'block';
-  playButtonContainer.appendChild(playIcon);
+    // Create audio player.
+    const audioPlayer = document.createElement('audio');
 
-  // Create the text label for "Play"
-  var playLabel = document.createElement('span');
-  playLabel.textContent = 'Play';
-  playLabel.style.fontFamily = 'Circular,-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif';
-  playLabel.style.marginLeft = '10px';
-  playLabel.style.fontWeight = 'bold';
-  playLabel.style.display = 'none'; // Initially hidden
-  playButtonContainer.appendChild(playLabel);
+    // Create pause and play button.
+    audioController = document.createElement('button');
+    audioContainer.className = "readel-audio-player";
+    audioController.style.width = '100px';
+    audioController.style.height = '30px';
+    audioController.style.backgroundColor = 'rgba(255, 248, 18, 0.5)';
+    audioController.style.borderRadius = '30px 5px 30px 30px'; // Rounded edges
+    audioController.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.1)'
+    audioController.style.backdropFilter = 'blur(9.8px)';
+    audioController.style.webkitBackdropFilter = 'blur(9.8px)'
+    audioController.style.border = '2px solid rgba(255, 248, 18, 1)';
+    audioController.style.transition = 'width 0.5s ease'; // Smooth transition for width
+    audioController.style.overflowX = 'hidden';
+    audioController.style.whiteSpace= 'nowrap';
+    audioController.style.display = 'inline-block';
+    audioController.style.marginLeft = '20px';
+    audioController.style.fontSize = '20px';
+    audioController.style.cursor = 'pointer';
 
-  // Expand button and show label on hover
-  playButtonContainer.addEventListener('mouseenter', function() {
-      playButtonContainer.style.width = '100px'; // Initial width
-      playLabel.style.display = 'block'; // Hide label
-  });
+    // background: rgba(255, 248, 18, 0.7);
+    // border-radius: 16px;
+    // box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    // backdrop-filter: blur(5.1px);
+    // -webkit-backdrop-filter: blur(5.1px);
+    // border: 1px solid rgba(255, 248, 18, 1);
+    
 
-  // Collapse button and hide label on mouse leave
-  playButtonContainer.addEventListener('mouseleave', function() {
-      playButtonContainer.style.width = '40px'; // Initial width
-      playLabel.style.display = 'none'; // Hide label
-  });
 
-  // Add functionality to the button (e.g., playing audio)
-  playing = false;
-  playButtonContainer.addEventListener('click', function() {
-    playing = !playing;
-    // console.log('Play button clicked');
-    // Add your play functionality here
+    buttonDiv = document.createElement('div');
+    buttonDiv.style.display = 'flex';
+    buttonDiv.style.alignItems = 'center';
+    buttonDiv.style.justifyContent = 'center';
 
-    if (!playing){
-      playIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-      playIcon.style.margin = '3px 0px 0px 3px'; // Center horizontally
-      playLabel.textContent = 'Play';
-      playButtonContainer.appendChild(playIcon);
-      playButtonContainer.appendChild(playLabel);
-      stopAudio(source);
-      playing = false;
-    }else {
-      playIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause"><rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/></svg>'
-      playIcon.style.margin = '3px 0px 0px 0px'; // Center horizontally
-      playLabel.textContent = 'Pause';
-      playButtonContainer.appendChild(playIcon);
-      playButtonContainer.appendChild(playLabel);
-      beginAudioFetch(combinedText);
-      playing = true;
-    }
-  });
+    const icon = document.createElement('div');
+    icon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    `
+    const label = document.createElement('span');
+    label.textContent = "Readel";
+    label.style.fontSize = '16px';
+    label.style.marginLeft = '5px';
+    label.style.marginRight = '5px';
+    icon.appendChild(label);
+    icon.style.display = 'flex';
+    icon.style.alignItems = 'center';
+    icon.style.justifyContent = 'center';
+    icon.style.fontSize = '16px';
+    buttonDiv.appendChild(icon);
+    audioController.appendChild(buttonDiv);
 
-  // Append the play button container to the body
-  document.body.appendChild(playButtonContainer);
+    // Settings button; ---------------------------------------------
+    cont = document.createElement('div');
+    cont.style.position = 'fixed';
+    cont.style.display = 'flex'; // Ensure it's ready to layout its children
+    cont.style.visibility = 'visible'; // Make sure it's not hiding its children
+    cont.style.bottom = '90px';
+    cont.style.right = '145px';
+    cont.style.alignItems = 'center';
+
+    const settingsContainer = document.createElement('div');
+    settingsContainer.style.display = 'flex';
+    settingsContainer.style.width = '0'; // Start with minimal width
+    settingsContainer.style.overflow = 'hidden'; // Prevent content overflow during animation
+    settingsContainer.style.visibility = 'hidden'; // Initially not visible but occupies space for smooth transition
+    settingsContainer.style.transition = 'width 0.2s ease, opacity 0.5s ease'; // Transition for width and opacity
+    settingsContainer.style.height = '30px';
+    settingsContainer.style.borderRadius = '30px 1px 1px 30px'; // Rounded edges
+    // settingsContainer.style.paddingTop = '2px'; // Rounded edges
+    settingsContainer.style.backgroundColor = 'black';
+    settingsContainer.style.flexDirection = 'row';
+    settingsContainer.style.alignItems = 'center';
+    settingsContainer.style.justifyContent = 'center';
+
+    const exit = document.createElement('button');
+    exit.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="18px" width="18px" viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path fill="#ffffff" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>`
+    exit.style.backgroundColor = 'transparent';
+    exit.style.display = 'flex';
+    exit.style.alignItems = 'center';
+    exit.style.border = 'none';
+
+    const settingsButtonContainer = document.createElement('button');
+    settingsButtonContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 640 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path fill="#ffffff" d="M533.6 32.5C598.5 85.2 640 165.8 640 256s-41.5 170.7-106.4 223.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C557.5 398.2 592 331.2 592 256s-34.5-142.2-88.7-186.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM473.1 107c43.2 35.2 70.9 88.9 70.9 149s-27.7 113.8-70.9 149c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C475.3 341.3 496 301.1 496 256s-20.7-85.3-53.2-111.8c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zm-60.5 74.5C434.1 199.1 448 225.9 448 256s-13.9 56.9-35.4 74.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C393.1 284.4 400 271 400 256s-6.9-28.4-17.7-37.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM301.1 34.8C312.6 40 320 51.4 320 64V448c0 12.6-7.4 24-18.9 29.2s-25 3.1-34.4-5.3L131.8 352H64c-35.3 0-64-28.7-64-64V224c0-35.3 28.7-64 64-64h67.8L266.7 40.1c9.4-8.4 22.9-10.4 34.4-5.3z"/></svg>`
+    settingsButtonContainer.style.backgroundColor = 'transparent';
+    settingsButtonContainer.style.zIndex = '999';
+    settingsButtonContainer.style.display = 'flex';
+    settingsButtonContainer.style.alignItems = 'center';
+    settingsButtonContainer.style.border = 'none';
+
+    volumeControl = document.createElement('input');
+    volumeControl.setAttribute('id', 'volume-id');
+    volumeControl.style.position = 'fixed';
+    volumeControl.style.display = 'none';
+    volumeControl.style.bottom = '120px';
+    volumeControl.style.right = '75px';
+    volumeControl.type = 'range';
+    volumeControl.style.height = '100px';
+    volumeControl.style.paddingBottom = '10px';
+    volumeControl.orient = 'vertical';
+    volumeControl.min = 0;
+    volumeControl.max = 100;
+    volumeControl.style.appearance = 'slider-vertical';
+    DOM.appendChild(volumeControl);
+
+    volumeControl.addEventListener('input', function() {
+        gainNode.gain.setValueAtTime(this.value / 100, audioCtx.currentTime);
+      }, false);
+
+    settingsContainer.appendChild(exit);
+    settingsContainer.appendChild(settingsButtonContainer);
+
+    cont.appendChild(settingsContainer);
+
+
+    showVolume = false;
+    settingsButtonContainer.addEventListener('click', function(){
+        if (showVolume){
+            volumeControl.style.display = 'block';
+        }else {
+            volumeControl.style.display = 'none';
+        }
+        showVolume = !showVolume;
+    })
+
+
+    let hoverTimer;
+    audioController.addEventListener('mouseenter', function() {
+        audioController.style.backgroundColor = 'rgba(255, 248, 18, 1)';
+        // Start the timer when mouse enters the button
+        hoverTimer = setTimeout(function() {
+            // Show the action button if hovered over for 2 seconds
+            settingsContainer.style.visibility = 'visible';
+            settingsContainer.style.opacity = '1';
+            settingsContainer.style.width = '60px'; // Example final width
+            audioController.style.borderRadius = '1px 1px 15px 1px'; // Rounded edges
+        }, 600);
+    });
+    audioController.addEventListener('mouseleave', function() {
+        audioController.style.backgroundColor = 'rgba(255, 248, 18, 0.7)';
+        clearTimeout(hoverTimer);
+    });
+
+    exit.addEventListener('click', function(){
+        // Animate the width reduction and opacity decrease
+        settingsContainer.style.width = '0';
+        settingsContainer.style.opacity = '0';
+        volumeControl.style.display = 'none';
+
+        // Wait for the opacity transition to finish before hiding the element
+        setTimeout(() => {
+            settingsContainer.style.visibility = 'hidden';
+        }, 500); // The timeout should match the transition duration of opacity
+        audioController.style.borderRadius = '30px 5px 30px 30px'; // Rounded edges
+    })
+
+
+    // Click handler.
+    audioController.addEventListener('click', function(){
+        playing = !playing;
+        console.log("audio is playing: ", playing);
+
+        if (playing){
+            handleUIChange(true);
+            sentences = getPageText();
+            initializeAudioPlayback(sentences);
+        } else {
+            // If audio playing is true. pause audio.
+            handleUIChange(false);
+            PauseAudio();
+        }
+    })
+
+    // skipButtonUI();
+    // Append elements to container.
+    root.appendChild(cont);
+    root.appendChild(audioPlayer);
+    root.appendChild(audioController);
+    DOM.appendChild(audioContainer);        // Append to DOM body.
 }
-
-// // Function to highlight a specific sentence on the page
-// function highlightSentence(sentence) {
-//   const bodyText = document.body.innerHTML;
-//   const highlightedText = `<span style="background-color: yellow;">${sentence}</span>`;
-//   // Replace the first occurrence of the sentence in the page with the highlighted version
-//   const updatedText = bodyText.replace(sentence, highlightedText);
-//   document.body.innerHTML = updatedText;
-// }
-
+// ----------------------------------------------------------------------------------
 
 /**
-  Listens for messages sent from the backend.
   @params request includes what type of message is sent.
   @return Initiats the correct function for the backend request.
 **/
 chrome.runtime.onMessage.addListener(function(request) {
-  if (request.greeting === "clicked") {                   // Starts the audio fetching process.
-      const text = window.getSelection().toString().trim(); // Get selected text
-      // console.log("Clicked");
-      beginAudioFetch(text)
-  } else if (request.greeting === "stop") {
-      stopAudio(source);
-  } else if (request.greeting === "out"){
-      alert("Edel has ran out of characters");
-  } else if (request.reddit === true){
-      debugLog("REDDIT PAGE FOUND");
-      setRedditPlayButton();
-  }else if (request.install === "error"){
-    alert("There has been an error with you install. Please contact our support.")
-  }else if (request.error === "connection-error"){
-    alert("There was an error, please try again.")
-  }
-});
-
-// Sanitise the selected text and then return the corrected text. 
-function beginAudioFetch(text){
-  sanitisedText = text.replace(/[^a-zA-Z0-9\s\.,;:'"(){}\[\]!?]/g, '');
-  // console.log(sanitisedText.length);
-  const MAX_CHARACTER_LENGTH = 1000000;
-  if (sanitisedText.length < MAX_CHARACTER_LENGTH) {
-    getSpeechElevenLabs(sanitisedText);
-  } else {
-    alert(`Invalid selection. Can't be greater than 1000 characters. (You selected ${sanitisedText.length})`);
-    console.error(`Invalid selection. Can't be greater than 1000 characters. (You selected ${sanitisedText.length})`);
-    setError('Too many characters selected.');
-  }
-};
-
-
-/**
-  Call AWS Lambda function, fetchAudio.
-  @param text - split into individual sentences.
-  @return Plays audio with web audio API
-**/
-async function getSpeechElevenLabs(text) {
-  setCursorToWait();    // Let background.js know to set the "stop" context menu.
-
-  chrome.runtime.sendMessage({action: true});   // Let background.js know to set the "stop" context menu.
-  
-  sentences = splitIntoSentences(text);   // Split text into sentences. This is a simple regex-based approach.
-
-  // Set variables for the loop.
-  let currentSentenceIndex = 0; // Index of the sentence currently being played
-  let nextAudioData;            // Prefetched audio data for the next sentence
-  let sentence;                 // Current sentence being played
-
-  // Find the next sentence to play, and play it.
-  async function playNextSentence() {
-    
-    // Timing FOR DEBUG.
-    let start;
-    if (DEBUG) {
-      start = Date.now();
+    if (request.greeting === "clicked") {                   // Starts the audio fetching process.
+        playing = true;
+        handleUIChange(true);
+        const text = window.getSelection().toString().trim(); // Get selected text
+        sentences = fetchFromSelectedText(combinedText, text);
+        initializeAudioPlayback(sentences);
+    } else if (request.greeting === "stop") {
+        playing = false;
+        handleUIChange(false);
+        PauseAudio();
+    } else if (request.greeting === "out"){
+        alert("Readel has ran out of characters");
+    } else if (request.install === "error"){
+        alert("There has been an error with you install. Please contact our support.")
+    } else if (request.error === "userInfoError"){
+        alert("Please sign in to use Readel.");
     }
+  });
 
-    // Check if the if we've reached the end of the sentences array.
-    if (currentSentenceIndex < sentences.length) {
-      // highlightSentence(sentence);
-      await chrome.runtime.sendMessage({action: 'getCredits', amount: sentences[currentSentenceIndex].length }, async function(response){
-        if (response.message === 'OUTOFCREDITS'){
-          alert("Sorry, Edel has ran out of credits.");
-        }else if(response.message === 'ok'){
-          let sentence = sentences[currentSentenceIndex];
+// Initialize the process with an array of sentences
+async function initializeAudioPlayback(sentences) {
+    const user = await getUser();
+    if (user){
+        audioBuffers = []; // Stores prefetched audio buffers
+        currentIndex = 0; // Tracks the current audio buffer to be played
+        if (sentences.length === 0) return;
 
-        latest_sentence = sentence;
-        let audioData;
+        // Prefetch the first sentence and start playback
+        console.log(sentences);
+        setCursorToWait(true);
+        audioBuffers[0] = await QueueAudio(sentences[0]);
+        setCursorToWait(false);
+        handleAudioPlay(sentences);
+        // setLastPlayDate();
+    }else{
+        alert("Please sign in to use Readel.");
+    };
+  }
 
-        // Is there new audio to play?
-        if (nextAudioData) {
-          audioData = nextAudioData;              // Use prefetched audio
-          nextAudioData = null;                   // Reset prefetch audio
-        } else {
-          audioData = await fetchTTS(sentence, currentSentenceIndex);   // Fetch TTS for the current sentence if not prefetched
+
+// Plays the current audio buffer and prefetches the next sentence
+// Revised playAudio function to handle buffer playback and manage source
+async function playAudio(buffer) {
+    if (playing){
+        if (!buffer) return;
+
+        if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
         }
 
-        playAudio(audioData, async () => {
-          currentSentenceIndex++;
-          await playNextSentence();               // Play next sentence after current one ends
-        });
+        if (source) {
+            source.disconnect();
+        }
 
-        await setCharacter(sentence.length)
+        source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        source.start(0);
+        playing = true;
 
-        // FOR DEBUG
-        debugLog(`Playing sentence ${currentSentenceIndex + 1} of ${sentences.length}`);
-        const end = Date.now();
-        debugLog(`Execution time: ${end - start} ms`);
-        await prefetchNextSentence();             // Prefetch the next sentence
-          } else {
-            alert("There has been an error.")
-          }
-      });
+        source.onended = async () => {
+            currentIndex++;
+            if (currentIndex < sentences.length) {
+                console.log("Playing next sentence");
+                await handleAudioPlay(); // Proceed to next without passing sentences again
+            } else {
+                console.log("Playback finished");
+                handleUIChange(false);
+                playing = false;
+                currentIndex = 0; // Reset for next playthrough
+            }
+        };
+    }else{
+        PauseAudio();
+    }
+}
+
+// Fetches TTS and queues up the next sentence for playback
+async function handleAudioPlay() {
+    if (currentIndex >= sentences.length) {
+        console.log("No more sentences to play.");
+        return;
+    }
+
+    if (!playing) {
+        console.log("Playback has been paused or stopped.");
+        return;
+    }
+
+    // Checking credits before playing each sentence
+    const response = await chrome.runtime.sendMessage({action: 'getCredits', amount: sentences[currentIndex].length});
+    if (response.message === 'OUTOFCREDITS') {
+        alert("Sorry, Readel has ran out of credits.");
+        handleUIChange(false);
+        playing = false;
+        return;
+    } else if (response.message === 'ok') {
+        if (!audioBuffers[currentIndex]) {
+            audioBuffers[currentIndex] = await QueueAudio(sentences[currentIndex]);
+        }
+        await playAudio(audioBuffers[currentIndex]);
+
+        // Prefetch the next sentence if it exists
+        if (currentIndex + 1 < sentences.length && !audioBuffers[currentIndex + 1]) {
+            await setCharacter(sentences[currentIndex].length);
+            audioBuffers[currentIndex + 1] = await QueueAudio(sentences[currentIndex + 1]);
+        }
     } else {
-      // All sentences have been played
-      chrome.runtime.sendMessage({action: false});
+        alert("There has been an error playing the audio.");
     }
-  }
+}
 
-  async function prefetchNextSentence() {
-    if (currentSentenceIndex + 1 < sentences.length) {
-      nextAudioData = await fetchTTS(sentences[currentSentenceIndex + 1], currentSentenceIndex);
-    }
+function PauseAudio(){
+    if (!source) return; // Ensure there's a source to pause
+    handleUIChange(false);
+    source.stop();
+    playing = false;
+    playbackPosition = audioCtx.currentTime - source.startTime; // Update playback position based on current time and start time
+}
+
+async function QueueAudio(text) {
+    let audioData = await fetchTTS(text, currentIndex);
+    return new Promise((resolve, reject) => {
+        audioCtx.decodeAudioData(audioData, buffer => {
+            resolve(buffer); // Resolve after setting buffer
+        }, error => {
+            console.error('Error decoding audio data:', error);
+            reject(error);
+        });
+    });
+}
+
+async function fetchTTS(sentence, currentSentenceIndex) {
+  try {
+    const { voice, quality } = await fetchVoiceAndQualitySettings();
+    let url = `https://x6oh96vkd8.execute-api.eu-central-1.amazonaws.com/fetchAudioAPI/fetchAudio?sentence=${sentence}&index=${currentSentenceIndex}&voice=${voice}&quality=${quality}`;
+    const res = await fetch(url);
+    const data = await res.json()
+    
+
+    return base64ToArrayBuffer(data.audioBase64);
+  } catch (error) {
+    console.error('Error in fetchTTS:', error);
+    throw error;  // Re-throw the error for further handling if necessary
   }
-  playNextSentence();
-  await prefetchNextSentence(); // Start prefetching the first sentence
-  setCursorToDefault();
+}
+
+// FYI, fetches once per instance. Doesn't check every sentence. Not sure if I want to change
+// too allow for speed changes for longer form content.
+function fetchVoiceAndQualitySettings() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(['voiceID', 'qualityID'], function(items) {
+        const voice = items.voiceID || 'robert';
+        const quality = items.qualityID || 'low';
+        resolve({ voice, quality });
+        });
+    });
+}
+
+// Turns the returned base64 from API, and turn into Audio ready array buffer.
+function base64ToArrayBuffer(base64) {
+    var binaryString = atob(base64);
+    var bytes = new Uint8Array(binaryString.length);
+    for (var i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+/**
+ * @param {Boolean} isPlaying 
+ * @param {Boolean} isLoading
+ * @description Handle any UI changes based on play state.
+ */
+function handleUIChange(isPlaying){
+    if (isButtonInejcted){
+        buttonDiv.innerHTML = '';
+        const label = document.createElement('span');
+        buttonDiv.style.display = 'flex';
+        buttonDiv.style.alignItems = 'center';
+        buttonDiv.style.justifyContent = 'center';
+        const icon = document.createElement('div');
+        label.style.fontSize = '16px';
+        label.style.marginLeft = '5px';
+        label.style.marginRight = '5px';
+        icon.style.display = 'flex';
+        icon.style.alignItems = 'center';
+        icon.style.justifyContent = 'center';
+        icon.style.fontSize = '16px';
+        if (isPlaying){
+            audioController.style.width = '35px';
+            audioController.style.backgroundColor = 'rgba(255, 248, 18, 1)';
+            cont.style.right = '80px';
+            volumeControl.style.right = '30px';
+            icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="14" width="8.75" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"/></svg>`
+            icon.appendChild(label);
+            buttonDiv.appendChild(icon);
+
+            chrome.runtime.sendMessage({action: true});
+        }else if (!isPlaying) {
+            audioController.style.backgroundColor = 'rgba(255, 248, 18, 0.7)';
+            audioController.style.width = '100px';
+            volumeControl.style.right = '95px';
+            cont.style.right = '145px';
+            icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="14" width="10.5" viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg>`
+            label.textContent = "Readel";
+            icon.appendChild(label);
+            buttonDiv.appendChild(icon);
+
+            chrome.runtime.sendMessage({action: false});
+        }
+    }else {
+        if (isPlaying){
+            chrome.runtime.sendMessage({action: true});
+        }else if (!isPlaying){
+            chrome.runtime.sendMessage({action: false});
+        }
+    }
+ 
+}
+
+function setCursorToWait(isLoading){
+    if (isLoading){
+        const style = document.createElement("style");
+        style.id = "corsor_wait";
+        style.innerHTML = "* {cursor: wait;}"
+        document.head.insertBefore(style, null);
+    } else {
+        document.getElementById("corsor_wait").remove();
+    }
 }
 
 /**
@@ -256,10 +480,9 @@ async function setCharacter(length){
       return;
     }
     if (result.user === undefined){
-      alert("Please reinstalled chrome extension.")
+      return;
     }
 
-    debugLog('Value currently is ' + result.user);
 
     const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setCharacters?user=${result.user}&updateChar=${length}`;
     fetch(url, {
@@ -269,9 +492,6 @@ async function setCharacter(length){
       },
     })
     .then(response => response.json())
-    .then(userInfo => {
-      debugLog(userInfo);
-    })
     .catch(error => {
       console.error('Error fetching user info:', error);
     });
@@ -279,298 +499,104 @@ async function setCharacter(length){
   return;
 }
 
-// Split text into sentences. This is a simple regex-based approach.
+function fetchFromSelectedText(text, selectedText){
+    // Use indexOf for a direct substring search
+    const searchTerm = text.indexOf(selectedText);
+  
+    // console.log("\nSelected Text:", selectedText);
+    // console.log("\nFull Text:", text);
+    // console.log("Search Term Index:", searchTerm);
+  
+    // Check if the selectedText is found
+    if (searchTerm === -1) {
+        console.log("Selected text not found in the main body of the text.");
+        return splitIntoSentences(selectedText);
+    }
+  
+    // Return the substring from the found index to the end
+    return splitIntoSentences(text.slice(searchTerm));
+}
+
 function splitIntoSentences(text) {
-  return text.match(/[^.;:\n!?]+[.;:\n!?]+/g) || [];
+    let sentences = text.match(/[^.;:\n!?]+[.;:\n!?]+/g) || [];
+    sentences = sentences.map(sentence => sentence.trim()); // Trim each sentence
+    return sentences;
 }
 
-// Get the voice and quality settings from storage.
-// FYI, fetches once per instance. Doesn't check every sentence. Not sure if I want to change
-// too allow for speed changes for longer form content.
-function fetchVoiceAndQualitySettings() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(['voiceID', 'qualityID'], function(items) {
-      const voice = items.voiceID || 'robert';
-      const quality = items.qualityID || 'low';
-      resolve({ voice, quality });
-    });
-  });
-}
 
-// Fetch the TTS audio for a sentence. Individual sentences are sent here to be sent to scary external API.
-async function fetchTTS(sentence, currentSentenceIndex) {
-  try {
-    const { voice, quality } = await fetchVoiceAndQualitySettings();
-    debugLog('Using voice and quality:', voice, quality);
+function getPageText() {
+    const article = document.querySelector('article');
+    let combinedText = '';
 
-    let url = `https://x6oh96vkd8.execute-api.eu-central-1.amazonaws.com/fetchAudioAPI/fetchAudio?sentence=${sentence}&index=${currentSentenceIndex}&voice=${voice}&quality=${quality}`;
-    debugLog(url);
-
-    const res = await fetch(url);
-    const data = await res.json()
-    return base64ToArrayBuffer(data.audioBase64);
-  } catch (error) {
-    console.error('Error in fetchTTS:', error);
-    setError(error);
-    throw error;  // Re-throw the error for further handling if necessary
-  }
-}
-
-// Play audio, pretty basic really.
-// Web Audio API, boilderplate code.
-function playAudio(audioData, onEnded) {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  audioContext.decodeAudioData(audioData, buffer => {
-    source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioContext.destination);
-    source.addEventListener('ended', onEnded);
-    source.start();
-  }, error => {
-    console.error('Error decoding audio data:', error);
-    setError(error);
-  });
-}
-
-// Stop audio source from playing
-function stopAudio(source){
-  sentences = [];
-  source.stop();
-  chrome.runtime.sendMessage({action: false});
-  debugLog("Audio stopped");
-}
-
-// Turns the returned base64 from API, and turn into Audio ready array buffer.
-function base64ToArrayBuffer(base64) {
-    var binaryString = atob(base64);
-    var bytes = new Uint8Array(binaryString.length);
-    for (var i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    debugLog(bytes.buffer);
-    return bytes.buffer;
-}
-
-// Pretty simple.
-function setCursorToWait(){
-  const style = document.createElement("style");
-  style.id = "corsor_wait";
-  style.innerHTML = "* {cursor: wait;}"
-  document.head.insertBefore(style, null);
-}
-
-// Again, pretty simple.
-function setCursorToDefault(){
-  document.getElementById("corsor_wait").remove();
-}
-
-// Sets an error to storage.
-// Fetches previous errors, adds new error, and then sets the new error.
-function setError(newError){
-  chrome.storage.local.get('error', function(result) {
-    const errorData = result.error || [];
-    const updatedErrorData = errorData.push(newError);
-    
-    chrome.storage.local.set({'error': updatedErrorData});
-  });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-
-  console.log("DOM HAS LOADED");
-  // Inject CSS for hover effect
-  const article = document.querySelector("article");
-  let playing = false;
-
-  if (article) {
-    let text = "";
-    const elements = article.querySelectorAll("h1, p");
-    elements.forEach(element => {
-      text += element.textContent + " ";
-    });
-
-    const words = [...text.matchAll(/[^\s]+/g)];
-    const wordCount = words.length;
-    const readingTime = Math.round(wordCount / 200);
-
-    const timeBadge = document.createElement("p");
-    timeBadge.textContent = `⏱️ ${readingTime} min read`;
-
-    const playBadge = document.createElement("button");
-    let play = playBadge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="12px" height="12px" viewBox="-0.5 0 7 7" version="1.1">
-      <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-          <g id="Dribbble-Light-Preview" transform="translate(-347.000000, -3766.000000)" fill="#000000">
-              <g id="icons" transform="translate(56.000000, 160.000000)">
-                  <path d="M296.494737,3608.57322 L292.500752,3606.14219 C291.83208,3605.73542 291,3606.25002 291,3607.06891 L291,3611.93095 C291,3612.7509 291.83208,3613.26444 292.500752,3612.85767 L296.494737,3610.42771 C297.168421,3610.01774 297.168421,3608.98319 296.494737,3608.57322" id="play-[#1003]"></path>
-              </g>
-          </g>
-      </g>
-      </svg> 
-      Listen`
-
-    // playBadge.style.position = "fixed";
-    // playBadge.style.bottom = "20px"; // Distance from the bottom of the viewport
-    // playBadge.style.left = "20px"; // Distance from the right of the viewport
-
-    playBadge.style.backgroundColor = "#fef118";
-    playBadge.style.fontSize = "16px";
-    playBadge.style.margin = "5px";
-    playBadge.style.width = "100px";
-    playBadge.style.height= "30px";
-    playBadge.style.borderRadius = "999px";
-    playBadge.style.borderStyle = "none";
-    playBadge.style.display = "flex";
-    playBadge.style.alignItems = "center";
-    playBadge.style.justifyContent = "center";
-    playBadge.style.gap = "5px";
-    playBadge.style.zIndex = "10000px";
-    
-    playBadge.addEventListener('click', function(){
-      // console.log("clicked", text);
-      playing = !playing;
-      // beginAudioFetch(text);
-      if(playing){
-        playBadge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14px" height="14px" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.163 3.819C5 4.139 5 4.559 5 5.4v13.2c0 .84 0 1.26.163 1.581a1.5 1.5 0 0 0 .656.655c.32.164.74.164 1.581.164h.2c.84 0 1.26 0 1.581-.163a1.5 1.5 0 0 0 .656-.656c.163-.32.163-.74.163-1.581V5.4c0-.84 0-1.26-.163-1.581a1.5 1.5 0 0 0-.656-.656C8.861 3 8.441 3 7.6 3h-.2c-.84 0-1.26 0-1.581.163a1.5 1.5 0 0 0-.656.656zm9 0C14 4.139 14 4.559 14 5.4v13.2c0 .84 0 1.26.164 1.581a1.5 1.5 0 0 0 .655.655c.32.164.74.164 1.581.164h.2c.84 0 1.26 0 1.581-.163a1.5 1.5 0 0 0 .655-.656c.164-.32.164-.74.164-1.581V5.4c0-.84 0-1.26-.163-1.581a1.5 1.5 0 0 0-.656-.656C17.861 3 17.441 3 16.6 3h-.2c-.84 0-1.26 0-1.581.163a1.5 1.5 0 0 0-.655.656z" fill="#000000"/></svg> Pause`;
-
-        // Stops the audio from resarting from beginning.
-        if (latest_sentence){
-          let updatedParagraph = text.replace(latest_sentence, "").trim();
-          updatedParagraph = updatedParagraph.replace(/\s\s+/g, ' ');
-          text = updatedParagraph.replace(/\s+([,.!?])/g, '$1');
-        }
-
-        beginAudioFetch(text);
-      } else{
-        playBadge.innerHTML = play;
-        stopAudio(source);
-      }
-    })
-    // Create a container for the badges
-    const badgeContainer = document.createElement("div");
-    badgeContainer.style.display = "flex";
-    badgeContainer.style.alignItems = "center";
-    badgeContainer.style.marginTop = "20px";
-    badgeContainer.style.gap = "10px";
-    
-
-    // Append both badges to the container
-    badgeContainer.appendChild(timeBadge);
-    badgeContainer.appendChild(playBadge);
-
-    // Simplify the selection for where to place the badges
-    let insertAfterElement = article.querySelector("h1") || 
-                            article.querySelector("header") || 
-                            article.firstChild;
-
-    // Insert the badgeContainer into the article
-    if (insertAfterElement) {
-      if (insertAfterElement === article.firstChild) {
-        article.insertBefore(badgeContainer, insertAfterElement);
-      } else {
-        insertAfterElement.insertAdjacentElement("afterend", badgeContainer);
-      }
+    if (article) {
+        combinedText = article.innerText;
     } else {
-      // Fallback if no insert point is found
-      article.appendChild(badgeContainer);
+        const tags = ['h1', 'p', 'li'];
+        tags.forEach(tag => {
+            const elements = document.querySelectorAll(tag);
+            elements.forEach(element => {
+                combinedText += element.innerText + " ";
+            });
+        });
     }
-  }
-});
+    combinedText = combinedText.trim(); // Trim the combined text here
+    return splitIntoSentences(combinedText);
+}
 
+async function getUser(){
+    return new Promise((resolve) => {
+        chrome.storage.sync.get('user', async function(items) {
+        if (items.user === undefined){
+            alert("Oh no, you are not signed in! Click on 'Readel' in the Extensions tab to sign in.");
+            resolve({return: false});
+        }
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError);
+            resolve({return: false});
+        }
+        })
+        resolve({return: true});
+    });
+}
 
+async function getTabUrl(){
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage({action: 'getTabUrl' }, async function(response){
+            // console.log(response);
+            resolve(response)
+        })
+    })
+}
 
+async function injectButton(){
+    const sentences = getPageText();
+    let totalCharacters = await sentences.reduce((acc, sentence) => acc + sentence.length, 0);
+    const url = await getTabUrl()
+    if (totalCharacters >= 800 && !(url.includes("www.youtube.com") || url.includes("chat.openai.com"))) {
+        isButtonInejcted = true;
+        AudioPlayerButton();
+    }
+}
 
-// REDDIT SECTION
-// ---------------------
-// Checks if we are on a reddit comment section and then puts a play button there.
-// Logged out state is different to logged in state.
+function skipButtonUI(){
 
-//document.addEventListener('DOMContentLoaded', function() {
-//  let lastKnownUrl; 
-//  let shouldAddButton;
-//  // Also research observers.
-//  const observer = new MutationObserver(mutations => {
-//    for (let mutation of mutations) {
-//      if (mutation.type === 'childList') {
-//          // Check if the URL has actually changed
-//          if (location.href !== lastKnownUrl) {
-//              lastKnownUrl = location.href;
-//              const redditCommentsRegex = /^https:\/\/www\.reddit\.com\/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+/;
-//              if (redditCommentsRegex.test(this.location.href)) {
-//                  // Perform your actions for Reddit comment URLs
-//                  debugLog("Reddit site detected on tab");
-//                  shouldAddButton = true;
-//              }else {
-//                shouldAddButton = false;
-//              }
-//          }
-//      }
-//      }
-//      if (shouldAddButton) {
-//        setRedditPlayButton();
-//      }
-//  });
-//
-//  observer.observe(document.body, {
-//      childList: true,
-//      subtree: true
-//  });
-//
-//});
-//
-//function setRedditPlayButton() {
-//  const postContent = document.querySelector('._21pmAV9gWG6F_UKVe7YIE0');
-//  postContent.style = "display: flex; justify-content: center' align-items: center;"
-//    // const buttonContainer = document.querySelector('._1hwEKkB_38tIoal6fcdrt9');
-//  if (postContent) {
-//      // Check if the play button already exists
-//      if (!postContent.querySelector('.custom-play-button')) {
-//          const playButton = document.createElement('button');
-//          playButton.textContent = '▶ Play Edel';
-//          playButton.classList.add('custom-play-button');
-//          playButton.style = "font-size: 15px; margin-left: 10px"
-//
-//          // Event listener for the play button
-//          playButton.addEventListener('click', () => {
-//              // Logic to handle play button click
-//              const postDetails = extractRedditPostDetails();
-//              debugLog(postDetails.title, postDetails.text)
-//              const text = `${postDetails.title}. ${postDetails.text}`
-//              // if (text > MAX_CHARCTERS){
-//                sanitiseInput(text);
-//              // }else{
-//              //   alert("You have reached max characters.")
-//              // }
-//          });
-//
-//          // Insert the play button
-//          postContent.appendChild(playButton);
-//      }
-//  }
-//}
-//
-//function extractRedditPostDetails() {
-//  const titleElement = document.querySelector('._2SdHzo12ISmrC8H86TgSCp h1');
-//  const title = titleElement ? titleElement.textContent : null;
-//
-//  const usernameElement = document.querySelector('[data-testid="post_author_link"]');
-//  const username = usernameElement ? usernameElement.textContent : null;
-//
-//  // Define the CSS selector for the container holding the text
-//  const textContainerSelector = '._3xX726aBn29LDbsDtzr_6E._1Ap4F5maDtT1E1YuCiaO0r.D3IL3FD0RFy_mkKLPwL4 ._292iotee39Lmt0MkQZ2hPV.RichTextJSON-root';
-//
-//  // Use the selector to find the container
-//  const textContainer = document.querySelector(textContainerSelector);
-//
-//  // Initialize an empty string to hold the extracted text
-//  let text = '';
-//
-//  // Check if the container is found
-//  if (textContainer) {
-//      // Extract and concatenate the text from each paragraph
-//      textContainer.querySelectorAll('p').forEach(p => {
-//          text += p.textContent.trim() + '\n\n';
-//      });
-//  }
-//
-//  return { title, username, text};
-//}
+    const skipFoward = document.createElement('button');
+    skipFoward.textContent = "->"
+    skipFoward.style.position = 'fixed';
+    // audioContainer.style.backgroundColor = "yellow";
+    skipFoward.style.bottom = '150px';
+    skipFoward.style.right = '40px';
+    skipFoward.style.height = '20px';
+    skipFoward.style.zIndex = '10000';
+
+    document.body.appendChild(skipFoward);
+
+    skipFoward.addEventListener('click', function(){
+        currentIndex += 1;
+        handleAudioPlay();
+    })
+
+}
+
+// Load script onto page.
+injectButton();

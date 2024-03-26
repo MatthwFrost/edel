@@ -1,16 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Edel: AI Text-to-Speech",
-  "version": "1.1.1",
-  "description": "[Early release] Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
+  "name": "Readel: AI Text-to-Speech",
+  "version": "1.4.1",
+  "description": "Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
   "permissions": [
     "storage",
     "contextMenus",
     "identity",
-    "scripting"
+    "scripting",
+    "tabs"
   ],
   "oauth2": {
-    "client_id": "227012789435-asa85andjkldbbc0f6lljbgl3st71mdc.apps.googleusercontent.com",
+    "client_id": "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email"
@@ -33,15 +34,5 @@
   "host_permissions": [
     "http://*/*",
     "https://*/*"
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "mystyles.css"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
-    }
   ]
 }

@@ -8,17 +8,17 @@
     <div class="nav">
       <div class="nav-left">
         <img src="/assets/newicon.png" alt="Icon" class="nav-img">
-        <h1>Edel<span class="version-number">Beta</span></h1>
+        <h1>Readel<span class="version-number">Beta</span></h1>
       </div>
       <div id="nav-user-icon">
       </div>
     </div>
-    <p class="last-update">Last update: 03/03/2024</p>
+    <p class="last-update">Last update: 15/03/2024</p>
   <!-- Health of app -->
   <div class="space">
     <div class="menu-divider"></div>
   </div>
-
+  <div class="menu">
     <div class="menuItem">
       <div class="icon-title">
         <div class="menuIcon">
@@ -36,23 +36,47 @@
           <!-- Icon -->
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </div>
-        <span class="menu-title">Edel's voice</span>
+        <span class="menu-title">Readel's voice</span>
       </div>
       <div class="icon-right">
-        <div class="dropdown" id="voice">
-            <button class="dropbtn" id="select-voice">selected</button>
-            <div class="dropdown-content" id="content-voice">
-              <a href="#" data-id="british-female">Lily</a>
+        <div class="dropdown" id="voice" data-dropdown>
+            <button class="dropbtn" id="select-voice" data-dropdown-button>Selected</button>
+            <div class="dropdown-content" id="content-voice" data-dropdown-content>
+              <a class="item" href="#" data-id="chris">
+                <p id="name" class="name">Chris</p><div class="pill">British Male&#8226; Calm</div></a>
+              </a>
               <div class="menu-divider"></div>
-              <a href="#" data-id="british-male">Matt</a>
+              <a class="item" href="#" data-id="british-female">
+                <p id="name" class="name">Hannah</p><div class="pill">British Female &#8226; Expressive</div>
+              </a>
               <div class="menu-divider"></div>
-              <a href="#" data-id="robert">Robert</a>
+              <a class="item" href="#" data-id="robert">
+                <p id="name" class="name">Robert</p><div class="pill">British Male &#8226; Narrative</div></a>
+              </a>
               <div class="menu-divider"></div>
-              <a href="#" data-id="valley">Amy</a>
+              <a class="item" href="#" data-id="valley">
+                <p id="name" class="name">Amy</p><div class="pill">American Female &#8226; Excited</div></a>
+              </a>
               <div class="menu-divider"></div>
-              <a href="#" data-id="jack">Jack</a>
+              <a class="item" href="#" data-id="jack">
+                <p id="name" class="name">Jay</p><div class="pill">American Male &#8226; Narrative</div></a>
+              </a>
               <div class="menu-divider"></div>
-              <a href="#" data-id="sally">Sally</a>
+              <a class="item" href="#" data-id="sally">
+                <p id="name" class="name">Sally</p><div class="pill">American Female &#8226; Valley</div></a>
+              </a>
+              <div class="menu-divider"></div>
+              <a class="item" href="#" data-id="anna">
+                <p id="name" class="name">Anna</p><div class="pill">British Female &#8226; Soft & Narrative</div></a>
+              </a>
+              <div class="menu-divider"></div>
+              <a class="item" href="#" data-id="james">
+                <p id="name" class="name">James</p><div class="pill">American Male&#8226; Narrative</div></a>
+              </a>
+              <div class="menu-divider"></div>
+              <a class="item" href="#" data-id="zues">
+                <p id="name" class="name">Zues</p><div class="pill">American Male&#8226; Deep</div></a>
+              </a>
             </div>
           </div>
         </div>
@@ -65,12 +89,14 @@
         <span class="menu-title">Quality</span>
       </div>
       <div class="icon-right">
-        <div class="dropdown" id="quality">
-          <button class="dropbtn" id="select-quality">Quality</button>
+        <div class="dropdown" id="quality" data-dropdown>
+          <button class="dropbtn" id="select-quality" data-dropdown-button="">Quality</button>
           <div class="dropdown-content" id="content-quality">
-            <a href="#" data-id="high">High (Slowest)</a>
-            <a href="#" data-id="medium">Medium (Average)</a>
-            <a href="#" data-id="low">Low (Fastest)</a>
+              <a href="#" data-id="high">High</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="medium">Medium</a>
+              <div class="menu-divider"></div>
+              <a href="#" data-id="low">Low</a>
           </div>
         </div>
       </div>
@@ -80,8 +106,8 @@
         <div class="menuIcon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-award"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
         </div>
-        <a href="https://edelwebsite.vercel.app/upcomingfeatures" target="_blank">
-          <span class="menu-title">Upcoming features</span>
+        <a href="https://www.readel.app/updates" target="_blank">
+          <span class="menu-title">Updates</span>
         </a>
       </div>
       <div class="icon-right">
@@ -114,6 +140,17 @@
       <div class="icon-right">
       </div>
     </a>
+  </div>
+  <a href="https://www.readel.app/buycredits" target="_blank">
+    <div class="menuItem-gold">
+      <div class="icon-title">
+        <div class="menuIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#fef118" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shopping-bag"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </div>
+        <span class="menu-title">Purchase characters</span>
+      </div>
+    </div>
+  </a>
     <!-- <div class="menuItem">
       <div class="icon-title">
         <div >
@@ -139,8 +176,9 @@
         </div>
       </div>    -->
       <span class="bottom-nav-text">
-        <a href="https://edelwebsite.vercel.app/" target="_blank">
-          If Edel does not work, please check our website for any major errors.  
+        <div class="email" id="user-email"></div>
+        <a href="https://www.readel.app/" target="_blank">
+          If Readel does not work, please check our website for any known error updates.  
         </a>
       </span>
     </div>

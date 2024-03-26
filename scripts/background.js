@@ -1,66 +1,11 @@
-
+const path = "scripts/content.js";
+let tabID;
 
 // Runs when the user installs the extension.
 chrome.runtime.onInstalled.addListener(async function(details) {
   if (details.reason === "install") {
-    // This code runs when the extension is first installed
-    const REDIRECT_URL = chrome.identity.getRedirectURL();
-    // console.log(REDIRECT_URL);
-    // const REDIRECT_URL = "https://www.google.com";
-    const clientID =
-    "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com";
-    const scopes = ["openid", "email", "profile"];
-    // console.log(REDIRECT_URL);
-    let authURL = "https://accounts.google.com/o/oauth2/auth";
-    authURL += `?client_id=${clientID}`;
-    authURL += `&response_type=token`;
-    authURL += `&redirect_uri=${encodeURIComponent(REDIRECT_URL)}`;
-    authURL += `&scope=${encodeURIComponent(scopes.join(" "))}`;
-    authURL += `&prompt=select_account`;
-    chrome.identity.launchWebAuthFlow(
-      {
-        url: authURL,
-        interactive: true,
-      },
-      async function(redirectUrl) {
-        // console.log('Redirect URL:', redirectUrl);
-        // Extract the token from the redirect URL.
-        if (redirectUrl) {
-          const url = new URL(redirectUrl);
-          const hashParams = new URLSearchParams(url.hash.substring(1)); // Remove the '#' at the start.
-          const accessToken = hashParams.get('access_token');
-          await chrome.storage.sync.set({'accessToken': accessToken});
-          const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error(`Error fetching user info: ${response.status}`);
-          }
-
-          const userInfo = await response.json();
-          try {
-            await chrome.storage.sync.set({'user': userInfo.id});
-            console.log("added user to local")
-          } catch (error) {
-            console.error("Error adding to storage", error);
-          }
-
-          const urlAWS = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setUpUser?user=${userInfo.id}&email=${userInfo.email}`;
-          const setUpResponse = await fetch(urlAWS);
-
-          if (!setUpResponse.ok) {
-            throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
-          }
-
-        } else {
-          console.error('OAuth2 login failed or was cancelled.');
-        }
-      }
-    );
     // Place your initialization or setup script here
+    signInHelper();
   } else if (details.reason === "update") {
     // This code runs when the extension is updated
     // chrome.storage.local.set({reloadTabsOnActivate: true});
@@ -77,9 +22,9 @@ chrome.tabs.onActivated.addListener(
     if(changeInfo.tabId){
       chrome.scripting.executeScript({
         target: {tabId: changeInfo.tabId},
-        files: ["scripts/content.js"]
+        files: [path]
       })
-      const tabID = changeInfo.id
+      tabID = changeInfo.id
       await chrome.storage.sync.set({tabID: true});
       createDefualtContextMenu();
     }
@@ -91,10 +36,22 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     // Check if the URL matches specific criteria
     chrome.scripting.executeScript({
       target: {tabId: tabId},
-      files: ["scripts/content.js"]
+      files: [path]
     })
   }
 });
+
+async function getTabUrl(){
+  return new Promise((resolve) => {
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          var currentTab = tabs[0];
+          if (currentTab) {
+              // Get the URL of the current tab
+              resolve(currentTab.url);
+          }
+      });
+  })
+}
 
 let connectionError = "Error: Could not establish connection. Receiving end does not exist."
 async function clicked(info){
@@ -118,7 +75,7 @@ async function clicked(info){
           }
         }).catch(async (error) => {
           // You could refresh the page and then read from local storage to continue reading.
-          chrome.tabs.reload(tab.tabId);
+          // chrome.tabs.reload(tab.tabId);
           // await chrome.tabs.sendmessage(tab.id, {error: "connection-error"});
           console.error(error);
         });
@@ -186,9 +143,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     }).catch(async (error) => {
       // You could refresh the page and then read from local storage to continue reading.
-      chrome.tabs.reload(tab.tabId);
-      // await chrome.tabs.sendmessage(tab.id, {error: "connection-error"});
+      // chrome.tabs.reload(tab.tabId);
+      await chrome.tabs.sendmessage(tab.id, {error: "userInfoError"});
       console.error(error);
+    });
+  }else if (message.action === "authUserPopup"){
+    signInHelper();
+  }else if (message.action === "getTabUrl"){
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        var currentTab = tabs[0];
+        if (currentTab) {
+            // Get the URL of the current tab
+            sendResponse(currentTab.url);
+        }
     });
   }
   return true;
@@ -240,6 +207,8 @@ function getCharacters() {
         resolve({characters, MAX}); // Resolve the promise with the data
       } catch (error) {
         console.error('Error in getCharacters:', error);
+        const [tabPlay] = chrome.tabs.query({active: true, currentWindow: true});
+        await chrome.tabs.sendmessage(tabID, {error: "userInfoError"});
         reject(error); // Reject the promise in case of an error
       }
     });
@@ -269,9 +238,72 @@ async function getUser(){
         let userInfo = await response.json();
         resolve({userInfo});
       } catch (error) {
+        const [tabPlay] = chrome.tabs.query({active: true, currentWindow: true});
+        await chrome.tabs.sendmessage(tabID, {error: "userInfoError"});
         console.error("Error in extension setup:", error.message);
         reject(error)
       }
     });
   })
+}
+
+function signInHelper(){
+  // This code runs when the extension is first installed
+  const REDIRECT_URL = chrome.identity.getRedirectURL();
+  // console.log(REDIRECT_URL);
+  // const REDIRECT_URL = "https://www.google.com";
+  const clientID =
+  "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com";
+  const scopes = ["openid", "email", "profile"];
+  // console.log(REDIRECT_URL);
+  let authURL = "https://accounts.google.com/o/oauth2/auth";
+  authURL += `?client_id=${clientID}`;
+  authURL += `&response_type=token`;
+  authURL += `&redirect_uri=${encodeURIComponent(REDIRECT_URL)}`;
+  authURL += `&scope=${encodeURIComponent(scopes.join(" "))}`;
+  authURL += `&prompt=select_account`;
+  chrome.identity.launchWebAuthFlow(
+    {
+      url: authURL,
+      interactive: true,
+    },
+    async function(redirectUrl) {
+      // console.log('Redirect URL:', redirectUrl);
+      // Extract the token from the redirect URL.
+      if (redirectUrl) {
+        const url = new URL(redirectUrl);
+        const hashParams = new URLSearchParams(url.hash.substring(1)); // Remove the '#' at the start.
+        const accessToken = hashParams.get('access_token');
+        await chrome.storage.sync.set({'accessToken': accessToken});
+        const response = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`Error fetching user info: ${response.status}`);
+        }
+
+        const userInfo = await response.json();
+        try {
+          await chrome.storage.sync.set({'user': userInfo.id});
+          await chrome.storage.sync.set({'email': userInfo.email});
+          console.log("added user to local")
+        } catch (error) {
+          console.error("Error adding to storage", error);
+        }
+
+        const urlAWS = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/setUpUser?user=${userInfo.id}&email=${userInfo.email}`;
+        const setUpResponse = await fetch(urlAWS);
+
+        if (!setUpResponse.ok) {
+          throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
+        }
+
+      } else {
+        console.error('OAuth2 login failed or was cancelled.');
+      }
+    }
+  );
 }

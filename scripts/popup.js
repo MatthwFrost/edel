@@ -57,21 +57,59 @@ function updateHealthIcon() {
 async function getUser(){
     await chrome.storage.sync.get('user', async function(items) {
         console.log("GET USER",items.user);
-        if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError);
-          return;
+        if (items.user === undefined){
+            console.log("User underfined");
+            document.body.innerHTML = '';
+            const signIn = document.createElement('div');
+            signIn.style.width = "300px";
+            signIn.style.height = "400px";
+            signIn.style.display = "flex";
+            signIn.style.alignItems= "center";
+            signIn.style.justifyContent= "center";
+            signIn.style.flexDirection = "column";
+            signIn.style.position = "fixed";
+            signIn.style.zIndex = "99999";
+
+            const heading = document.createElement('h1');
+            heading.textContent = 'Sign in.';
+            heading.style.fontSize = '28px';
+
+            const para = document.createElement('p');
+            para.textContent = 'Sign into a Google account to use Readel.';
+            para.style.fontSize = '15px';
+            para.style.textAlign = 'center';
+
+            const signInButton = document.createElement('button');
+            signInButton.textContent = 'Sign in';
+            signInButton.style.border = 'none';
+            signInButton.style.width = '100px';
+            signInButton.style.height = '40px';
+            signInButton.style.marginTop = '10px';
+            signInButton.style.borderRadius = '999px';
+            signInButton.style.backgroundColor = '#FFF407';
+            signInButton.style.cursor = 'pointer';
+
+            const help = document.createElement('p');
+            help.textContent = '* a popup will show. *';
+            help.style.fontSize = '10px';
+            help.style.margin = '15px';
+
+            signInButton.addEventListener('click', async function(){
+                await chrome.runtime.sendMessage({action: 'authUserPopup' })
+            })
+            signIn.appendChild(heading);
+            signIn.appendChild(para);
+            signIn.appendChild(signInButton);
+            signIn.appendChild(help);
+            document.body.appendChild(signIn);
+            return;
         }
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError);
+            return;
+        }
+
         getCharacters(items.user);
-        // const profileImageUrl = userInfo.picture;
-        
-        // let setProfileImage = document.createElement('img');
-        // setProfileImage.src = profileImageUrl;
-        // setProfileImage.className = 'nav-img';
-
-        // let pDiv = document.getElementById('nav-user-icon');
-        // pDiv.appendChild(setProfileImage);
-
-          // Use the profile image URL as needed
         })
     return;
 }
@@ -87,46 +125,106 @@ async function getCharacters(userInfo){
     const responseChar = await fetch(url);
     const dataChar = await responseChar.json();
     const READING_TIME = getCharacterEstimation(dataChar.MAX_CHARACTERS, dataChar.characters);
+    let overLimit = false;
 
     setCharacters = document.getElementById('characters');
     characters = document.createElement('span');
     characters.style.fontSize = "12px";
-    characters.textContent = `${dataChar.characters}/${dataChar.MAX_CHARACTERS} (~${Math.round(READING_TIME)} mins)`;
+    console.log(typeof dataChar.MAX_CHARACTERS)
+    console.log(typeof dataChar.characters)
+    if (Number(dataChar.characters) > Number(dataChar.MAX_CHARACTERS)){
+        overLimit = true;
+        console.log("over limit");
+    }else {
+        console.log("not over limit");
+        overLimit = false;
+    }
+
+    // characters.textContent = `${dataChar.characters}/${dataChar.MAX_CHARACTERS} (~${Math.round(READING_TIME)} mins)`;
+    characters.innerHTML = `<p><span class=${overLimit ? 'redText' : 'greenText'}>${dataChar.characters}</span>/${dataChar.MAX_CHARACTERS}</p>`
+    characters.style.display = 'flex';
+    characters.style.alignItems = 'center';
+    characters.style.justifyContent = 'center';
     pending.remove();
     setCharacters.appendChild(characters);
 }
 
+async function setEmail(){
+    await chrome.storage.sync.get('email', async function(items) {
+        console.log("GET USER", items.email);
+        let emailSeciton = document.getElementById('user-email');
+        let text = document.createElement('p');
+        if (items.email === undefined){
+            text.textContent = "Can't find email...";
+        }else {
+            text.textContent = `Logged in as: ${items.email}`; 
+        }
+
+        emailSeciton.appendChild(text);
+    })
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Show if there are errors.
+    setEmail();
     updateHealthIcon();
     getUser();
+
+    document.addEventListener('click', e => {
+        const isDropdownButton = e.target.matches("[data-dropdown-button]");
+
+        if (!isDropdownButton && e.target.closest('[data-dropdown]') != null) return;
+
+        let currentDropdown;
+        if (isDropdownButton){
+            currentDropdown = e.target.closest('[data-dropdown]');
+            currentDropdown.classList.toggle('active');
+        }
+
+        document.querySelectorAll("[data-dropdown].active").forEach(dropDown => {
+            if (dropDown === currentDropdown) return
+            dropDown.classList.remove('active');
+        })
+
+    })
 
     const dropdownContent = document.getElementById('content-voice');
     const dropdownContentQuality = document.getElementById('content-quality');
 
     // Read it using the storage API
-    const defualtButtonVoice = document.getElementById('select-voice');
+    const defaultButtonVoice = document.getElementById('select-voice');
     chrome.storage.local.get('defaultVoice', function(items) {
         if (items.defaultVoice === undefined){
             console.log('No defualt voice set');
-            defualtButtonVoice.textContent = 'Robert';
+            defaultButtonVoice.textContent = 'Robert';
             return;
         }else {
-            defualtButtonVoice.textContent = items.defaultVoice;
+            defaultButtonVoice.textContent = items.defaultVoice;
         }
     });
 
     dropdownContent.addEventListener('click', function(event) {
-        if (event.target.tagName === 'A') {
-        // Change the button text to the text of the clicked item
-        defualtButtonVoice.textContent = event.target.textContent;
-        const selectedVoiceId = event.target.getAttribute('data-id');
-        // Prevent default anchor action
-        event.preventDefault();
-        console.log(event.target.textContent);
-        chrome.storage.local.set({'defaultVoice': event.target.textContent, 'voiceID': selectedVoiceId}, function() {
-            console.log('Settings saved', event.target.textContent);
-        });
+        event.preventDefault(); // Prevent default anchor action globally for all clicks within the dropdown
+        
+        let targetElement = event.target;
+        
+        // Ensure we always work with the <a> element, even if a child was clicked
+        while (targetElement != null && targetElement.tagName !== 'A' && targetElement !== dropdownContent) {
+            targetElement = targetElement.parentNode;
+        }
+        
+        // Proceed only if an <a> element was indeed clicked
+        if (targetElement && targetElement.tagName === 'A') {
+            // Determine the voice name. If the <a> contains a <p>, use its textContent
+            const voiceName = targetElement.querySelector('p') ? targetElement.querySelector('p').textContent : targetElement.textContent;
+            
+            const selectedVoiceId = targetElement.getAttribute('data-id');
+            
+            // Update button text and save settings
+            defaultButtonVoice.textContent = voiceName;
+            console.log(voiceName);
+            chrome.storage.local.set({'defaultVoice': voiceName, 'voiceID': selectedVoiceId}, function() {
+                console.log('Settings saved', voiceName);
+            });
         }
     });
 
@@ -134,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get('quality', function(items) {
         if (items.quality === undefined){
             console.log('No default voice set');
-            defualtButtonSelect.textContent = 'Low (Fastest)';
+            defualtButtonSelect.textContent = 'High';
             return;
         }else {
             defualtButtonSelect.textContent = items.quality;
@@ -166,154 +264,3 @@ function getCharacterEstimation(totalCharacters, currentCharacters){
     const READING_TIME = AVG_WORDS / AVG_WPM;
     return READING_TIME;
 }
-
-// let offset = 0;
-// let audioData = [];
-// let source;
-
-// function onButtonClick(i) {
-
-//     if (source) { 
-//         source.stop();
-//     }
-
-//     const audio = base64ToArrayBuffer(audioData[i]);
-//     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-//     audioContext.decodeAudioData(audio, buffer => {
-
-//         source = audioContext.createBufferSource();
-//         source.buffer = buffer;
-//         source.connect(audioContext.destination);
-
-//         // Change speed of audio, however, pitch changes which I don't like.
-//         // source.playbackRate.value = 1.5;
-
-//         // Check if the audio is ended.
-//         source.addEventListener('ended', () => {
-//         });
-
-//         source.start();
-//     });
-// }
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     // Your code here
-//     getRecentAudio();
-//     addLoadMoreButton();
-// });
-
-// async function getRecentAudio() {
-//     const user = "Matt";
-//     const limit = 5;
-//     console.log(`Before send off: ${offset}`);
-//     const url = `https://69hw2yk5p9.execute-api.eu-central-1.amazonaws.com/dev/?userID=${user}&limit=${limit}&offset=${offset}`;
-//     try {
-//         const response = await fetch(url, {
-//             method: 'GET',
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             },
-//         });
-
-//         const data = await response.json();
-//         const MAX_LENGTH = data.MAX_LENGTH;
-//         for (let i = 0; i < data.data.data.length; i++) {
-//             await audioData.push(data.data.data[i]['audio-data']);
-//             let container = document.body;
-//             const text = data.data.data[i].text;
-//             const cappedText = `${text.substring(0, 30)}...`;
-
-//             createCustomComponent(container, 'Play', cappedText, text, i);
-//         }
-//         // Check if we have reached the end of the database. If we haven't, add show more button.
-
-//         const loading = document.getElementById('load');
-//         if (loading) {
-//             loading.remove();
-//         }
-//         if (offset + limit >= MAX_LENGTH) {
-//             const loadMoreButton = document.getElementById('load-more');
-//             loadMoreButton.remove();
-//             return;
-//         } else{
-//             const loadMoreButton = document.getElementById('load-more');
-//             loadMoreButton.remove();
-//             addLoadMoreButton(MAX_LENGTH, offset, limit);
-//         }
-//     } catch (error) {
-//         console.error('Error fetching data:', error);
-//     }
-
-//     offset += limit;
-// }
-
-// function base64ToArrayBuffer(base64) {
-//     var binaryString = atob(base64);
-//     var bytes = new Uint8Array(binaryString.length);
-//     for (var i = 0; i < binaryString.length; i++) {
-//         bytes[i] = binaryString.charCodeAt(i);
-//     }
-//     console.log(bytes.buffer);
-//     return bytes.buffer;
-// }
-
-// function addLoadMoreButton(MAX_LENGTH, offset, limit) { 
-//     const fetchMoreButton = document.createElement('button');
-//     fetchMoreButton.className = 'load-more';
-//     fetchMoreButton.id = 'load-more';
-//     if (!MAX_LENGTH && !offset && !limit){
-//         fetchMoreButton.textContent = `Show more`;
-//     }else{
-//         fetchMoreButton.textContent = `Show more (${MAX_LENGTH - (offset + limit)} left)`;
-//     }
-//     document.body.appendChild(fetchMoreButton);
-
-//     fetchMoreButton.addEventListener('click', () => {
-//         fetchMoreButton.innerHTML = '<img src="/assets/loading.gif" alt="Loading..." style="width: 20px; height: 20px; margin-right: 5px;" /> Searching';
-//         getRecentAudio();
-//     });
-// };
-
-
-
-// function createCustomComponent(parentElement, buttonText, headingText, infoText, i) {
-//     // Create main div for the component
-//     var componentDiv = document.createElement('div');
-//     componentDiv.className = 'audio-component';
-
-//     // Create button
-//     var button = document.createElement('button');
-//     button.className = 'AudioButton';
-//     button.textContent = buttonText;
-
-//     button.addEventListener('click', () => {
-//         onButtonClick(i);
-//     });
-
-//     // Create heading
-//     var heading = document.createElement('h2');
-//     heading.className = 'component-heading';
-//     heading.textContent = headingText;
-
-//     // Create information paragraph
-//     var infoParagraph = document.createElement('p');
-//     infoParagraph.className = 'component-info';
-//     infoParagraph.textContent = infoText.substring(0, 50) + '...';
-
-//     let subComponentDiv = document.createElement('div');
-//     subComponentDiv.className = 'sub-component';
-//     subComponentDiv.appendChild(heading);
-//     subComponentDiv.appendChild(infoParagraph);
-
-//     let divider = document.createElement('hr');
-//     divider.style = 'width:100%;text-align:left;margin-left:0;opacity:0.5;border-radius:999px;';
-
-//     // Append elements to the main div
-//     componentDiv.appendChild(subComponentDiv);
-//     componentDiv.appendChild(button);
-
-//     // Append the component to the parent element
-//     parentElement.appendChild(componentDiv);
-//     parentElement.appendChild(divider);
-    
-// }
