@@ -10,7 +10,6 @@ function updateHealthIcon() {
             healthIcon.classList.remove('green');
             healthIcon.classList.add('red');
             const healthDiv = document.getElementById('health');
-
             healthDiv.addEventListener('click', function() {
                 if (open){
                     open = false;
@@ -115,7 +114,7 @@ async function getUser(){
 }
 
 async function getCharacters(userInfo){
-    console.log(userInfo);
+    // console.log(userInfo);
     let setCharacters = document.getElementById('characters');
     let pending = document.createElement('span');
     pending.textContent = "Pending...";
@@ -130,18 +129,18 @@ async function getCharacters(userInfo){
     setCharacters = document.getElementById('characters');
     characters = document.createElement('span');
     characters.style.fontSize = "12px";
-    console.log(typeof dataChar.MAX_CHARACTERS)
-    console.log(typeof dataChar.characters)
-    if (Number(dataChar.characters) > Number(dataChar.MAX_CHARACTERS)){
-        overLimit = true;
-        console.log("over limit");
-    }else {
-        console.log("not over limit");
-        overLimit = false;
-    }
+    // console.log(typeof dataChar.MAX_CHARACTERS)
+    // console.log(typeof dataChar.characters)
+    // if (Number(dataChar.characters) > Number(dataChar.MAX_CHARACTERS)){
+    //     overLimit = true;
+    //     console.log("over limit");
+    // }else {
+    //     console.log("not over limit");
+    //     overLimit = false;
+    // }
 
     // characters.textContent = `${dataChar.characters}/${dataChar.MAX_CHARACTERS} (~${Math.round(READING_TIME)} mins)`;
-    characters.innerHTML = `<p><span class=${overLimit ? 'redText' : 'greenText'}>${dataChar.characters}</span>/${dataChar.MAX_CHARACTERS}</p>`
+    characters.innerHTML = `<p><span class=${overLimit ? 'redText' : 'greenText'}>${dataChar.characters} Characters</span></p>`
     characters.style.display = 'flex';
     characters.style.alignItems = 'center';
     characters.style.justifyContent = 'center';
@@ -221,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Update button text and save settings
             defaultButtonVoice.textContent = voiceName;
-            console.log(voiceName);
+            // console.log(voiceName);
             chrome.storage.local.set({'defaultVoice': voiceName, 'voiceID': selectedVoiceId}, function() {
                 console.log('Settings saved', voiceName);
             });

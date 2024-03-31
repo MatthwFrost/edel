@@ -1,4 +1,5 @@
 const path = "scripts/content.js";
+const authID = "227012789435-pa387n3clvnggph2b7vl7l8im8helq25.apps.googleusercontent.com";
 let tabID;
 
 // Runs when the user installs the extension.
@@ -252,8 +253,7 @@ function signInHelper(){
   const REDIRECT_URL = chrome.identity.getRedirectURL();
   // console.log(REDIRECT_URL);
   // const REDIRECT_URL = "https://www.google.com";
-  const clientID =
-  "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com";
+  const clientID = authID;
   const scopes = ["openid", "email", "profile"];
   // console.log(REDIRECT_URL);
   let authURL = "https://accounts.google.com/o/oauth2/auth";
@@ -300,7 +300,6 @@ function signInHelper(){
         if (!setUpResponse.ok) {
           throw new Error(`Error in setUpUser request: ${setUpResponse.status}`);
         }
-
       } else {
         console.error('OAuth2 login failed or was cancelled.');
       }

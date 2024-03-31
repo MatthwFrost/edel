@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Readel: AI Text-to-Speech",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "description": "Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
   "permissions": [
     "storage",

@@ -345,4 +345,6 @@ p:hover + #myHoverButton {
 .menu {
     height: 480px;
     margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
 }
