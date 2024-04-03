@@ -1,18 +1,20 @@
 <html>
-  <head>
-    <link rel="stylesheet" href="app.css">
-  </head>
-  <body>
-    <div class="profile" id="profile">
+
+<head>
+  <link rel="stylesheet" href="app.css">
+</head>
+
+<body>
+  <div class="profile" id="profile">
+  </div>
+  <div class="nav">
+    <div class="nav-left">
+      <img src="/assets/newicon.png" alt="Icon" class="nav-img">
+      <h1>Readel<span class="version-number">Beta</span></h1>
     </div>
-    <div class="nav">
-      <div class="nav-left">
-        <img src="/assets/newicon.png" alt="Icon" class="nav-img">
-        <h1>Readel<span class="version-number">Beta</span></h1>
-      </div>
-      <div id="nav-user-icon">
-      </div>
+    <div id="nav-user-icon">
     </div>
+  </div>
   <p class="last-update">Last update: 01/04/2024</p>
   <div class="space">
     <div class="menu-divider"></div>
@@ -21,7 +23,13 @@
     <div class="menuItem">
       <div class="icon-title">
         <div class="menuIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-italic"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            class="feather feather-italic">
+            <line x1="19" y1="4" x2="10" y2="4" />
+            <line x1="14" y1="20" x2="5" y2="20" />
+            <line x1="15" y1="4" x2="9" y2="20" />
+          </svg>
         </div>
         <span class="menu-title">Characters used</span>
       </div>
@@ -33,57 +41,90 @@
       <div class="icon-title">
         <div class="menuIcon">
           <!-- Icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            class="feather feather-mic">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <line x1="8" y1="23" x2="16" y2="23" />
+          </svg>
         </div>
         <span class="menu-title">Readel's voice</span>
       </div>
       <div class="icon-right">
         <div class="dropdown" id="voice" data-dropdown>
-            <button class="dropbtn" id="select-voice" data-dropdown-button>Selected</button>
-            <div class="dropdown-content" id="content-voice" data-dropdown-content>
-              <a class="item" href="#" data-id="chris">
-                <p id="name" class="name">Chris</p><div class="pill">British Male&#8226; Calm</div></a>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="british-female">
-                <p id="name" class="name">Hannah</p><div class="pill">British Female &#8226; Expressive</div>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="robert">
-                <p id="name" class="name">Robert</p><div class="pill">British Male &#8226; Narrative</div></a>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="valley">
-                <p id="name" class="name">Amy</p><div class="pill">American Female &#8226; Excited</div></a>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="jack">
-                <p id="name" class="name">Jay</p><div class="pill">American Male &#8226; Narrative</div></a>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="sally">
-                <p id="name" class="name">Sally</p><div class="pill">American Female &#8226; Valley</div></a>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="anna">
-                <p id="name" class="name">Anna</p><div class="pill">British Female &#8226; Soft & Narrative</div></a>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="james">
-                <p id="name" class="name">James</p><div class="pill">American Male&#8226; Narrative</div></a>
-              </a>
-              <div class="menu-divider"></div>
-              <a class="item" href="#" data-id="zues">
-                <p id="name" class="name">Zues</p><div class="pill">American Male&#8226; Deep</div></a>
-              </a>
-            </div>
+          <button class="dropbtn" id="select-voice" data-dropdown-button>Selected</button>
+          <div class="dropdown-content" id="content-voice" data-dropdown-content>
+            <a class="item" href="#" data-id="chris">
+              <p id="name" class="name">Chris</p>
+              <div class="pill">British Male&#8226; Calm</div>
+            </a>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="british-female">
+              <p id="name" class="name">Hannah</p>
+              <div class="pill">British Female &#8226; Expressive</div>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="robert">
+              <p id="name" class="name">Robert</p>
+              <div class="pill">British Male &#8226; Narrative</div>
+            </a>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="valley">
+              <p id="name" class="name">Amy</p>
+              <div class="pill">American Female &#8226; Excited</div>
+            </a>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="jack">
+              <p id="name" class="name">Jay</p>
+              <div class="pill">American Male &#8226; Narrative</div>
+            </a>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="sally">
+              <p id="name" class="name">Sally</p>
+              <div class="pill">American Female &#8226; Valley</div>
+            </a>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="anna">
+              <p id="name" class="name">Anna</p>
+              <div class="pill">British Female &#8226; Soft & Narrative</div>
+            </a>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="james">
+              <p id="name" class="name">James</p>
+              <div class="pill">American Male&#8226; Narrative</div>
+            </a>
+            </a>
+            <div class="menu-divider"></div>
+            <a class="item" href="#" data-id="zues">
+              <p id="name" class="name">Zues</p>
+              <div class="pill">American Male&#8226; Deep</div>
+            </a>
+            </a>
           </div>
         </div>
-      </div>    
+      </div>
+    </div>
     <div class="menuItem">
       <div class="icon-title">
         <div class="menuIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            class="feather feather-list">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" />
+            <line x1="3" y1="12" x2="3.01" y2="12" />
+            <line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
         </div>
         <span class="menu-title">Quality</span>
       </div>
@@ -91,100 +132,164 @@
         <div class="dropdown" id="quality" data-dropdown>
           <button class="dropbtn" id="select-quality" data-dropdown-button="">Quality</button>
           <div class="dropdown-content" id="content-quality">
-              <a href="#" data-id="high">High</a>
-              <div class="menu-divider"></div>
-              <a href="#" data-id="medium">Medium</a>
-              <div class="menu-divider"></div>
-              <a href="#" data-id="low">Low</a>
+            <a href="#" data-id="high">High</a>
+            <div class="menu-divider"></div>
+            <a href="#" data-id="medium">Medium</a>
+            <div class="menu-divider"></div>
+            <a href="#" data-id="low">Low</a>
           </div>
         </div>
       </div>
-    </div>   
-      <a href="https://www.readel.app/howto" target="_blank">
-    <div class="menuItem">
-      <div class="icon-title">
-        <div class="menuIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-help-circle"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
+    </div>
+    <a href="https://www.readel.app/howto" target="_blank">
+      <div class="menuItem">
+        <div class="icon-title">
+          <div class="menuIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-help-circle">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
           <span class="menu-title">How to</span>
-      </div>
-      <div class="icon-right">
-        <div id="characters" class="charcter-div">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div>
+        <div class="icon-right">
+          <div id="characters" class="charcter-div">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-external-link">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
     </a>
-      <a href="https://ag7phnq517o.typeform.com/to/l5CF8S1H" target="_blank">
-    <div class="menuItem">
-      <div class="icon-title">
-        <div class="menuIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-loader"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-        </div>
+    <a href="https://ag7phnq517o.typeform.com/to/l5CF8S1H" target="_blank">
+      <div class="menuItem">
+        <div class="icon-title">
+          <div class="menuIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-loader">
+              <line x1="12" y1="2" x2="12" y2="6" />
+              <line x1="12" y1="18" x2="12" y2="22" />
+              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+              <line x1="2" y1="12" x2="6" y2="12" />
+              <line x1="18" y1="12" x2="22" y2="12" />
+              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
+              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+            </svg>
+          </div>
           <span class="menu-title">Feature vote</span>
-      </div>
-      <div class="icon-right">
-        <div id="characters" class="charcter-div">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div>
+        <div class="icon-right">
+          <div id="characters" class="charcter-div">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-external-link">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
     </a>
     <a href="https://www.readel.app/updates" target="_blank">
-    <div class="menuItem">
-      <div class="icon-title">
-        <div class="menuIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-award"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-        </div>
+      <div class="menuItem">
+        <div class="icon-title">
+          <div class="menuIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-award">
+              <circle cx="12" cy="8" r="7" />
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+            </svg>
+          </div>
           <span class="menu-title">Updates</span>
-      </div>
-      <div class="icon-right">
-        <div id="characters" class="charcter-div">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div>
+        <div class="icon-right">
+          <div id="characters" class="charcter-div">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-external-link">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
-        </a>
-        <a href="https://chromewebstore.google.com/detail/mleknmnljocojhodiblcnbgffbhckihd" target="_blank">
-    <div class="menuItem">
-      <div class="icon-title">
-        <div class="menuIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </div>
+    </a>
+    <a href="https://chromewebstore.google.com/detail/mleknmnljocojhodiblcnbgffbhckihd" target="_blank">
+      <div class="menuItem">
+        <div class="icon-title">
+          <div class="menuIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-star">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          </div>
           <span class="menu-title">Leave a review</span>
-      </div>
-      <div class="icon-right">
-        <div id="characters" class="charcter-div">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div>
+        <div class="icon-right">
+          <div id="characters" class="charcter-div">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-external-link">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
-        </a>
-        <a href="https://ag7phnq517o.typeform.com/to/K5GTEV9L" target="_blank">
-    <div class="menuItem">
-      <div class="icon-title">
-        <div class="menuIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus-circle"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        </div>
+    </a>
+    <a href="https://ag7phnq517o.typeform.com/to/K5GTEV9L" target="_blank">
+      <div class="menuItem">
+        <div class="icon-title">
+          <div class="menuIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-plus-circle">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="16" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+          </div>
           <span class="menu-title">Give feedback</span>
-      </div>
-      <div class="icon-right">
-        <div id="characters" class="charcter-div">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div>
+        <div class="icon-right">
+          <div id="characters" class="charcter-div">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-external-link">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
-        </a>
+    </a>
   </div>
-    <div class="bottom-nav">
-      <span class="bottom-nav-text">
-        <div class="email" id="user-email"></div>
-        Supported by: 
-        <a href="https://elevenlabs.io/text-to-speech" target="_blank">
-          <img src="https://storage.googleapis.com/eleven-public-cdn/images/elevenlabs-grants-logo.png" alt="Text to Speech" style="width:100px">
-          </a>
-      </span>
-    </div>
-  </body>
-  <script src="/scripts/popup.js"></script>
+  <div class="bottom-nav">
+    <span class="bottom-nav-text">
+      <div class="email" id="user-email"></div>
+      Supported by:
+      <a href="https://elevenlabs.io/text-to-speech" target="_blank">
+        <img src="https://storage.googleapis.com/eleven-public-cdn/images/elevenlabs-grants-logo.png"
+          alt="Text to Speech" style="width:100px">
+      </a>
+    </span>
+  </div>
+</body>
+<script src="/scripts/popup.js"></script>
 </html>

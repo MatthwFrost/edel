@@ -67,7 +67,7 @@ function injectAudioPlayer() {
   settingsPlaybackControllButton = buildPlaybackButton();
   settingsVolumeSlider = buildSettingsVolumeSlider();
   settingsPlaybackControllSlider = buildSettingsPlaybackControllSlider();
- 
+
   DOM.appendChild(settingsPlaybackControllSlider);
   DOM.appendChild(settingsVolumeSlider);
 
@@ -122,9 +122,11 @@ function injectAudioPlayer() {
     false
   );
 
-  settingsPlaybackControllSlider.addEventListener("input", function () {
-    playbackRate = this.value;
+  const settingsPlaybackRateSlider = buildSettingsPlaybackControllSlider();
+  settingsPlaybackRateSlider.addEventListener("input", function () {
+    playbackRate = parseFloat(this.value);
     source.playbackRate.value = this.value;
+    console.log(playbackRate);
   });
 
   // settingsContainer.appendChild(playbackControllButton);
@@ -218,13 +220,16 @@ function injectAudioPlayer() {
 
   // skipButtonUI();
   // Append elements to container.
+  
+
+  root.appendChild(settingsPlaybackRateSlider);
   root.appendChild(toggleSettingsContainer);
   root.appendChild(audioPlayer);
   root.appendChild(audioController);
   DOM.appendChild(audioContainer); // Append to DOM body.
 }
 
-function buildVolumeButton(){
+function buildVolumeButton() {
   settingsVolumeButton = document.createElement("button");
   settingsVolumeButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 640 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path fill="#ffffff" d="M533.6 32.5C598.5 85.2 640 165.8 640 256s-41.5 170.7-106.4 223.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C557.5 398.2 592 331.2 592 256s-34.5-142.2-88.7-186.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM473.1 107c43.2 35.2 70.9 88.9 70.9 149s-27.7 113.8-70.9 149c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C475.3 341.3 496 301.1 496 256s-20.7-85.3-53.2-111.8c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zm-60.5 74.5C434.1 199.1 448 225.9 448 256s-13.9 56.9-35.4 74.5c-10.3 8.4-25.4 6.8-33.8-3.5s-6.8-25.4 3.5-33.8C393.1 284.4 400 271 400 256s-6.9-28.4-17.7-37.3c-10.3-8.4-11.8-23.5-3.5-33.8s23.5-11.8 33.8-3.5zM301.1 34.8C312.6 40 320 51.4 320 64V448c0 12.6-7.4 24-18.9 29.2s-25 3.1-34.4-5.3L131.8 352H64c-35.3 0-64-28.7-64-64V224c0-35.3 28.7-64 64-64h67.8L266.7 40.1c9.4-8.4 22.9-10.4 34.4-5.3z"/></svg>`;
   settingsVolumeButton.style.backgroundColor = "transparent";
@@ -236,7 +241,7 @@ function buildVolumeButton(){
   return settingsVolumeButton;
 }
 
-function buildPlaybackButton(){
+function buildPlaybackButton() {
   settingsPlaybackControllButton = document.createElement("button");
   settingsPlaybackControllButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path fill="#ffffff" d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm320 96c0-26.9-16.5-49.9-40-59.3V88c0-13.3-10.7-24-24-24s-24 10.7-24 24V292.7c-23.5 9.5-40 32.5-40 59.3c0 35.3 28.7 64 64 64s64-28.7 64-64zM144 176a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm-16 80a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM400 144a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>`;
   settingsPlaybackControllButton.style.backgroundColor = "transparent";
@@ -249,7 +254,7 @@ function buildPlaybackButton(){
   return settingsPlaybackControllButton;
 }
 
-function buildSettingsContainer(){
+function buildSettingsContainer() {
   settingsContainer = document.createElement("div");
   settingsContainer.style.display = "flex";
   settingsContainer.style.width = "0"; // Start with minimal width
@@ -265,7 +270,7 @@ function buildSettingsContainer(){
   return settingsContainer;
 }
 
-function buildSettingsToggleContainer(){
+function buildSettingsToggleContainer() {
   toggleSettingsContainer = document.createElement("div");
   toggleSettingsContainer.style.position = "fixed";
   toggleSettingsContainer.style.display = "flex"; // Ensure it's ready to layout its children
@@ -276,7 +281,7 @@ function buildSettingsToggleContainer(){
   return toggleSettingsContainer;
 }
 
-function buildSettingsVolumeSlider(){
+function buildSettingsVolumeSlider() {
   settingsVolumeSlider = document.createElement("input");
   settingsVolumeSlider.setAttribute("id", "volume-id");
   settingsVolumeSlider.style.position = "fixed";
@@ -302,31 +307,30 @@ function buildSettingsVolumeSlider(){
   return settingsVolumeSlider;
 }
 
-function buildSettingsPlaybackControllSlider(){
-  settingsPlaybackControllSlider = document.createElement("input");
-  settingsPlaybackControllSlider.setAttribute("id", "volume-id");
-  settingsPlaybackControllSlider.style.position = "fixed";
-  settingsPlaybackControllSlider.style.display = "none";
-  settingsPlaybackControllSlider.style.bottom = `${screen.height / 2 + 25}px`;
-  settingsPlaybackControllSlider.style.right = "93px";
-  settingsPlaybackControllSlider.type = "range";
-  settingsPlaybackControllSlider.style.height = "100px";
-  settingsPlaybackControllSlider.style.writingMode = "vertical-lr";
-  settingsPlaybackControllSlider.min = 0.25;
-  settingsPlaybackControllSlider.max = 1;
-  settingsPlaybackControllSlider.step = "0.25";
-  settingsPlaybackControllSlider.value = "1";
-  settingsPlaybackControllSlider.style.webkitAppearance = "none";
-  settingsPlaybackControllSlider.style.width = "20px";
-  settingsPlaybackControllSlider.style.height = "100px";
-  settingsPlaybackControllSlider.style.borderRadius = "5px";
-  settingsPlaybackControllSlider.style.background = "#d3d3d3";
-  settingsPlaybackControllSlider.style.outline = "none";
-  settingsPlaybackControllSlider.style.transition = "opacity .2s";
-  return settingsPlaybackControllSlider;
+function buildSettingsPlaybackControllSlider() {
+  var pitchControlSlider = document.createElement("input");
+  pitchControlSlider.setAttribute("id", "pitch-id");
+  pitchControlSlider.style.position = "fixed";
+  pitchControlSlider.style.display = "visible";
+  pitchControlSlider.style.bottom = "0px";
+  pitchControlSlider.style.right = "0px";
+  pitchControlSlider.type = "range";
+  pitchControlSlider.style.height = "100px"; // Keep the slider vertical
+  pitchControlSlider.style.width = "20px"; // Width of the slider
+  pitchControlSlider.style.writingMode = "vertical-lr";
+  pitchControlSlider.style.webkitAppearance = "none";
+  pitchControlSlider.style.borderRadius = "5px";
+  pitchControlSlider.style.background = "#d3d3d3";
+  pitchControlSlider.style.outline = "none";
+  pitchControlSlider.style.transition = "opacity .2s";
+  pitchControlSlider.min = 0.5; // Representing 50%
+  pitchControlSlider.max = 2; // Representing 200%
+  pitchControlSlider.step = "0.25"; // Step by 10% for pitch adjustment
+  pitchControlSlider.value = "1"; // Normal pitch
+  return pitchControlSlider;
 }
 
-function buildAudioController(){
+function buildAudioController() {
   audioController = document.createElement("div");
   audioController.style.width = "45px";
   audioController.style.height = "40px";
@@ -346,7 +350,7 @@ function buildAudioController(){
   return audioController;
 }
 
-function buildAudioControllerButtonContainer(){
+function buildAudioControllerButtonContainer() {
   audioControllerButtonContainer = document.createElement("div");
   audioControllerButtonContainer.style.width = "100%";
   audioControllerButtonContainer.style.height = "100%";
@@ -356,7 +360,7 @@ function buildAudioControllerButtonContainer(){
   return audioControllerButtonContainer;
 }
 
-function buildAudioControllerPlayButton(){
+function buildAudioControllerPlayButton() {
   audioControllerPlayButton = document.createElement("button");
   audioControllerPlayButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="#fff" height="16" width="16" viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg>`;
   audioControllerPlayButton.style.display = "flex";
@@ -369,7 +373,7 @@ function buildAudioControllerPlayButton(){
   return audioControllerPlayButton;
 }
 
-function buildAudioControllerSkipBackwardButton(){
+function buildAudioControllerSkipBackwardButton() {
   audioControllerSkipBackwardButton = document.createElement("button");
   audioControllerSkipBackwardButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg>`;
   audioControllerSkipBackwardButton.style.visibility = "hidden";
@@ -383,7 +387,7 @@ function buildAudioControllerSkipBackwardButton(){
   return audioControllerSkipBackwardButton;
 }
 
-function buildAudioControllerSkipForwardButton(){ 
+function buildAudioControllerSkipForwardButton() {
   audioControllerSkipForwardButton = document.createElement("button");
   audioControllerSkipForwardButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-forward"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>`;
   audioControllerSkipForwardButton.style.display = "flex";
@@ -397,7 +401,7 @@ function buildAudioControllerSkipForwardButton(){
   return audioControllerSkipForwardButton;
 }
 
-function buildAudioContainer(){
+function buildAudioContainer() {
   audioContainer = document.createElement("div");
   audioContainer.style.position = "fixed";
   audioContainer.style.bottom = screen.height / 2 + "px";
@@ -471,10 +475,10 @@ async function playAudio(buffer) {
       source.disconnect();
     }
 
-    source = audioCtx.createBufferSource();
+    source = audioCtx.createBufferSource(preservePitch = true);
     try {
       source.buffer = buffer;
-    } catch {}
+    } catch { }
 
     source.connect(gainNode);
     gainNode.connect(audioCtx.destination);
