@@ -1,4 +1,10 @@
-// Pause button doesn't pause context menu audio.
+import { PitchShifter } from 'soundtouchjs';
+
+
+// here you retrieved your file with 'fetch' or a new instance of the 'FileReader', and from the data...
+if (shifter) {
+  shifter.off(); // remove any current listeners
+}
 
 // Set global variables.
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -20,6 +26,7 @@ let source = null;
 
 // --- New ---
 let audioController;
+let audioContainer;
 let audioControllerButtonContainer;
 let audioControllerPlayButton;
 let audioControllerSkipBackwardButton;
@@ -30,6 +37,8 @@ let settingsVolumeButton;
 let settingsPlaybackControllButton;
 let settingsVolumeSlider;
 let settingsPlaybackControllSlider;
+let showVolume;
+let shifter;
 
 const tags = ["h1", "p", "li"]; // Define the tags you're interested in
 let combinedText = ""; // String to hold the combined text content
@@ -45,7 +54,7 @@ tags.forEach((tag) => {
 // ----------------------------------------------------------------------------------
 function injectAudioPlayer() {
   const DOM = document.body;
-  const audioContainer = buildAudioContainer();
+  audioContainer = buildAudioContainer();
   const root = audioContainer.attachShadow({ mode: "open" });
   const audioPlayer = document.createElement("audio");
 
@@ -475,7 +484,7 @@ async function playAudio(buffer) {
       source.disconnect();
     }
 
-    source = audioCtx.createBufferSource(preservePitch = true);
+    source = audioCtx.createBufferSource();
     try {
       source.buffer = buffer;
     } catch { }

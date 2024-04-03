@@ -18,7 +18,7 @@
     ]
   },
   "background": {
-    "service_worker": "/scripts/background.js",
+    "service_worker": "/build/background.js",
     "permissions": true,
     "type": "module"
   },
