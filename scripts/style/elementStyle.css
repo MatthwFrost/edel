@@ -1,0 +1,164 @@
+.audio-container{
+    position: fixed;
+    bottom: 50%;
+    right: 0px;
+}
+.main-container { 
+    position: relative;
+    width: 125px;
+    height: 36px;
+}
+.player-container {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 10px 0px 0px 10px;
+    width: 30%; /* Adjust width as per requirement */
+    height: 100%;
+    background-color: #084b83;
+    transition: width 0.3s ease, opacity 0.2s ease-in; /* Smooth transition for hover effect */
+    display: flex;
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    overflow: hidden;
+}
+.player-container:hover {
+    opacity: 1;
+    transition-delay: 0.3s;
+}
+.player-container-child {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5px;
+    width: 80%;
+}
+.settings-container{
+    height: 36px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 70%; /* Adjust width as per requirement */
+    border-radius: 10px 0px 0px 10px;
+    background-color: rgba(15, 17, 12, 0.7);
+    transform: translateX(200%); /* Hide the left content by default */
+    transition: transform 0.2s ease; /* Smooth transition for hover effect */
+    transition-delay: 0.8s;
+    display: flex;
+    flex-direction: row;
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+}
+
+.main-container:hover .settings-container {
+    opacity: 1;
+    transform: translateX(10%); /* Move the left content into view on hover */
+}
+button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+.reset-button {
+    transition: 500ms ease-in-out;
+    margin-right: 10px;
+}
+.reset-button:hover {
+    rotate: 20deg;
+}
+
+.player-button-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dropdown-button {
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    border-radius: 999px;
+    color: white;
+}
+.dropdown-button:hover {
+    background-color: #252422;
+}
+svg { 
+    padding: 0;
+    margin: 0;
+    pointer-events: none;
+}
+
+.dropdown { 
+    position: relative;
+}
+
+.dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.25rem);
+    background-color: #0f110c;
+    border-radius: .25rem;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    pointer-events: none;
+    transform: translatey(10px);
+    transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+
+}
+
+.dropdown.active > .dropdown-button + .dropdown-menu {
+    opacity: 1;
+    transform: translatey(0px);
+    pointer-events: auto;
+}
+
+
+.dropdown-menu-link {
+    text-decoration: none;
+    color: white;
+}
+
+.playback-rate-selector {
+    width: 80px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: start;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+.divider {
+    width: 60px;
+    height: 1px;
+    background-color: white;
+    opacity: 0.3;
+}
+
+input[type="range"]{
+    width: 30px;
+    height: 100px;
+}
+div {
+    margin: 0;
+    padding: 0;
+}

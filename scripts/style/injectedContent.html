@@ -1,0 +1,64 @@
+<readel-extension>
+    <div class="audio-container" id="audio-container">
+        <div class="main-container" id="main-container">
+            <div class="settings-container" id="settings-container">
+                <div class="dropdown" data-dropdown>
+                    <button class="dropdown-button" data-dropdown-button>
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#fff" viewBox="0 0 24 24">
+                            <path d="M13 6.037c0-1.724-1.978-2.665-3.28-1.562L5.638 7.933H4c-1.105 0-2 .91-2 2.034v4.066c0 1.123.895 2.034 2 2.034h1.638l4.082 3.458c1.302 1.104 3.28.162 3.28-1.562V6.037Z"/>
+                            <path fill-rule="evenodd" d="M14.786 7.658a.988.988 0 0 1 1.414-.014A6.135 6.135 0 0 1 18 12c0 1.662-.655 3.17-1.715 4.27a.989.989 0 0 1-1.414.014 1.029 1.029 0 0 1-.014-1.437A4.085 4.085 0 0 0 16 12a4.085 4.085 0 0 0-1.2-2.904 1.029 1.029 0 0 1-.014-1.438Z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M17.657 4.811a.988.988 0 0 1 1.414 0A10.224 10.224 0 0 1 22 12c0 2.807-1.12 5.35-2.929 7.189a.988.988 0 0 1-1.414 0 1.029 1.029 0 0 1 0-1.438A8.173 8.173 0 0 0 20 12a8.173 8.173 0 0 0-2.343-5.751 1.029 1.029 0 0 1 0-1.438Z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu" data-dropdown-menu>
+                        <div class="volume-selector">
+                            <input type=range id="volume-range" style="writing-mode: vertical-lr" min="0" max="1" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown" data-dropdown>
+                    <button class="dropdown-button" id="playback-rate" data-dropdown-button>
+                        1x
+                    </button>
+                    <div class="dropdown-menu" data-dropdown-menu>
+                        <div class="playback-rate-selector" id="playback-rate-selector">
+                            <a href="" class="dropdown-menu-link" data-id="2">2</a>
+                            <div class="divider"></div>
+                            <a href="" class="dropdown-menu-link" data-id="1.75">1.75</a>
+                            <div class="divider"></div>
+                            <a href="" class="dropdown-menu-link" data-id="1.5">1.5</a>
+                            <div class="divider"></div>
+                            <a href="" class="dropdown-menu-link" data-id="1.25">1.25</a>
+                            <div class="divider"></div>
+                            <a href="" class="dropdown-menu-link" data-id="1">Normal</a>
+                            <div class="divider"></div>
+                            <a href="" class="dropdown-menu-link" data-id="0.75">0.75</a>
+                            <div class="divider"></div>
+                            <a href="" class="dropdown-menu-link" data-id="0.5">0.5</a>
+                            <div class="divider"></div>
+                            <a href="" class="dropdown-menu-link" data-id="0.25">0.25</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="player-container" id="player-container">
+                <div class="player-container-child">
+                    <button class="reset-button" id="reset-button" hidden>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rotate-cw"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    </button>
+                    <div class="player-button-group">
+                        <button class="bskip-button" id="bskip-button" hidden>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-back"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                        </button>
+                        <button class="player-button" id="player-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </button>
+                        <button class="fskip-button" id="fskip-button" hidden>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-forward"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</readel-extension>

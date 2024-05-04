@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Readel: AI Text-to-Speech",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
   "permissions": [
     "storage",
@@ -22,6 +22,19 @@
     "permissions": true,
     "type": "module"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["scripts/style/injectedContent.html", "scripts/style/elementStyle.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["build/inject.js"],
+      "run_at": "document_end"
+    }
+  ],
   "icons": {
     "16": "/assets/newicon.png",
     "32": "/assets/newicon.png",
@@ -29,7 +42,7 @@
     "128": "/assets/newicon.png"
   },
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "/scripts/popup/index.html"
   },
   "host_permissions": [
     "http://*/*",

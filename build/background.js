@@ -1,6 +1,9 @@
-const path = "build/content.js";
-const authID = "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com";
+const path = "build/inject.js";
+const cssPath = "scripts/stylesheet.css";
+const authID = "227012789435-pa387n3clvnggph2b7vl7l8im8helq25.apps.googleusercontent.com";
 let tabID;
+// let keepFetching = true;
+let interval = 500;
 
 // Runs when the user installs the extension.
 chrome.runtime.onInstalled.addListener(async function (details) {
@@ -21,26 +24,36 @@ chrome.tabs.onActivated.addListener(
     console.log(changeInfo);
     // console.log("New tab", changeInfo.tabId);
     if (changeInfo.tabId) {
-      chrome.scripting.executeScript({
-        target: { tabId: changeInfo.tabId },
-        files: [path]
-      })
+      // chrome.scripting.executeScript({
+      //   target: { tabId: changeInfo.tabId },
+      //   files: [path],
+      //   runAt: 'document_idle'
+      // })
+      // chrome.scripting.insertCSS({
+      //   target: { tabId: changeInfo.tabId },
+      //   files: [cssPath],
+      //   runAt: 'document_idle'
+      // });
       tabID = changeInfo.id
       await chrome.storage.sync.set({ tabID: true });
       createDefualtContextMenu();
     }
   });
 
-// inject when tab is refreshed.
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  if (changeInfo.status === 'complete') {
-    // Check if the URL matches specific criteria
-    chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: [path]
-    })
-  }
-});
+// // inject when tab is refreshed.
+// chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+//   if (changeInfo.status === 'complete') {
+//     // Check if the URL matches specific criteria
+//     chrome.scripting.executeScript({
+//       target: { tabId: tabId },
+//       files: [path]
+//     })
+//     chrome.scripting.insertCSS({
+//       target: { tabId: tabId },
+//       files: [cssPath]
+//     });
+//   }
+// });
 
 async function getTabUrl() {
   return new Promise((resolve) => {
@@ -99,7 +112,7 @@ async function clicked(info) {
 function initialize() {
   chrome.storage.local.get(['voiceID', 'qualityID'], function (items) {
     voice = items.voiceID || 'robert';
-    quality = items.qualityID || 'low';
+    quality = items.qualityID || 'high';
 
     // console.log('Initialized voice and quality:', voice, quality);
   });
@@ -159,6 +172,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
   }
+  else if (message.command === 'start') {
+    const sentences = message.sentences;
+    const currentSentenceIndex = message.currentIndex;
+    fetchAudioData(sentences, currentSentenceIndex);
+} else if (message.command === 'stop') {
+}
   return true;
 });
 
@@ -289,6 +308,7 @@ function signInHelper() {
         try {
           await chrome.storage.sync.set({ 'user': userInfo.id });
           await chrome.storage.sync.set({ 'email': userInfo.email });
+          initialize();
           console.log("added user to local")
         } catch (error) {
           console.error("Error adding to storage", error);
@@ -305,4 +325,48 @@ function signInHelper() {
       }
     }
   );
+}
+
+function fetchAudioData(sentences, currentSentenceIndex) {
+  // if (!keepFetching) return;
+
+  fetchTTS(sentences[currentSentenceIndex], currentSentenceIndex)
+      .then(data => {
+          chrome.runtime.sendMessage({greeting: 'audioData', data: data});  // Send data back to the requesting script
+          scheduleNextFetch(sentences, currentSentenceIndex + 1);
+      })
+      .catch(error => {
+          console.error('Failed to fetch:', error);
+          chrome.runtime.sendMessage({ error: "Failed to fetch" });
+          scheduleNextFetch(sentences, currentSentenceIndex + 1);
+      });
+}
+
+function scheduleNextFetch(sentences, currentSentenceIndex) {
+  if (currentSentenceIndex < sentences.length) {
+      setTimeout(() => fetchAudioData(sentences, currentSentenceIndex), interval);
+  }
+}
+
+async function fetchTTS(sentence, currentSentenceIndex) {
+  try {
+      const { voice, quality } = await fetchVoiceAndQualitySettings();
+      let url = `https://x6oh96vkd8.execute-api.eu-central-1.amazonaws.com/fetchAudioAPI/fetchAudio?sentence=${encodeURIComponent(sentence)}&index=${currentSentenceIndex}&voice=${voice}&quality=${quality}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.audioBase64;
+  } catch (error) {
+      console.error("Error in fetchTTS:", error);
+      throw error;
+  }
+}
+
+function fetchVoiceAndQualitySettings() {
+  return new Promise((resolve) => {
+      chrome.storage.local.get(["voiceID", "qualityID"], (items) => {
+          const voice = items.voiceID || "defaultVoice";
+          const quality = items.qualityID || "standardQuality";
+          resolve({ voice, quality });
+      });
+  });
 }

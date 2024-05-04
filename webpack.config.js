@@ -2,10 +2,10 @@ const path = require('path');
 
 module.exports = {
   mode: 'production', // or 'production'
-  entry: './scripts/content.js', // Your main JS file
+  entry: './scripts/core/inject.js', // Your main JS file
   output: {
     path: path.resolve(__dirname, 'build'), // Output directory
-    filename: 'content.js' // Output file
+    filename: 'inject.js' // Output file
   },
   module: {
     rules: [
