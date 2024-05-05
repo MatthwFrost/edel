@@ -8,19 +8,22 @@ body {
     padding-bottom: 20px;
     margin: 0 0 20px 0px;
     overflow: scroll;
-    font-family: Circular,-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    font-family: Circular, -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
     user-select: none;
 }
+
 h1 {
     color: #171717;
     font-size: 24px;
     font-weight: bold;
     margin: 0 0 10px 0;
 }
+
 a {
     color: #171717;
     text-decoration: none;
 }
+
 .dot {
     height: 15px;
     width: 15px;
@@ -28,13 +31,16 @@ a {
     display: inline-block;
     margin-right: 10px;
 }
+
 .dot.red {
     background-color: red;
 }
+
 .dot.green {
     background-color: seagreen;
 
 }
+
 .nav-img {
     width: 30px;
     height: 30px;
@@ -42,6 +48,7 @@ a {
     margin-right: 10px;
     border-radius: 50%;
 }
+
 .nav {
     display: flex;
     flex-direction: row;
@@ -49,19 +56,23 @@ a {
     align-items: center;
     color: #171717;
 }
-.nav-left{
+
+.nav-left {
     display: flex;
     flex-direction: row;
 
 }
+
 .divider {
     margin: 20px 0 10px 0;
 }
-.error-text{
+
+.error-text {
     color: red;
     font-size: 5px;
     margin: 0 0 10px 0;
 }
+
 .menuItem {
     width: 100%;
     height: 40px;
@@ -74,7 +85,8 @@ a {
     align-items: center;
     margin: 5px 0 5px 0;
 }
-.menuItem-gold{
+
+.menuItem-gold {
     /* From https://css.glass */
 
     background: rgba(254, 241, 24, 0.80);
@@ -95,29 +107,35 @@ a {
     align-items: center;
     cursor: pointer;
 }
+
 .menu-divider {
     width: 100%;
     height: 1px;
     background-color: #c1cfda;
     opacity: 0.5;
 }
+
 .space {
     margin: 10px;
 }
+
 .voice-text {
     font-size: 14px;
     font-weight: normal;
     color: #666;
 }
+
 .version-number {
     font-size: 14px;
     font-weight: normal;
     columns: #666;
     margin-left: 5px;
 }
+
 .last-update {
     font-size: '5px';
 }
+
 .health-check {
     font-size: 14px;
     font-weight: normal;
@@ -125,19 +143,23 @@ a {
     font-size: 30px;
     margin-right: 20px;
 }
+
 .icon-title {
     display: flex;
     align-items: center;
     margin-left: 10px;
 }
+
 .icon-right {
     display: flex;
     align-items: center;
     margin-right: 5px;
 }
+
 .menu-title {
     margin-left: 5px;
 }
+
 .profile {
     display: flex;
     flex-direction: row;
@@ -146,6 +168,7 @@ a {
     width: 100%;
     margin: 0 0 10px 0;
 }
+
 /* Dropdown Button */
 .dropbtn {
     color: black;
@@ -161,6 +184,7 @@ a {
     border: 1px solid rgba(228, 228, 228, 1);
     cursor: pointer;
 }
+
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
     opacity: 0;
@@ -171,7 +195,7 @@ a {
     min-width: 250px;
     max-height: 300px;
     overflow: scroll;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     z-index: 9999;
     border-radius: 5px;
     left: 0;
@@ -180,27 +204,31 @@ a {
     pointer-events: none;
     transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
 }
+
 .dropdown-content p {
     margin: 0 0 5px 0;
 }
-.dropdown.active > .dropbtn + .dropdown-content{
+
+.dropdown.active>.dropbtn+.dropdown-content {
     opacity: 1;
     transform: translateY(0px);
     pointer-events: auto;
 }
 
 .bottom-nav {
-    position: fixed; 
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     text-align: center;
     margin: 10px;
 }
-.bottom-nav-text{
+
+.bottom-nav-text {
     font-weight: lighter;
     font-size: 10px;
 }
+
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
     position: relative;
@@ -214,33 +242,43 @@ a {
     min-width: 250px;
     max-height: 400px;
     overflow: none;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     z-index: 9999;
     border-radius: 5px;
     left: 0;
     overflow-x: hidden;
 }
+
 .item {
     display: flex;
 }
+
 .name {
     color: '#000';
 }
+
 .pill {
     font-size: 12px;
     color: grey;
     border: 2;
 }
+
 #content-quality {
     overflow-y: none;
 }
+
 /* Media query to handle cases where the dropdown might go off screen */
-@media (max-width: 500px) { /* Adjust 500px based on your requirements */
+@media (max-width: 500px) {
+
+    /* Adjust 500px based on your requirements */
     .dropdown-content {
-      left: auto; /* Reset left value */
-      right: 0; /* Align the right edge of the dropdown with the container */
+        left: auto;
+        /* Reset left value */
+        right: 0;
+        /* Align the right edge of the dropdown with the container */
     }
-  }
+}
+
 /* Links inside the dropdown */
 .dropdown-content a {
     color: black;
@@ -248,17 +286,24 @@ a {
     text-decoration: none;
     display: block;
 }
+
 .redText {
     color: red;
 }
-.greenText { 
+
+.greenText {
     color: green;
 }
+
 /* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #ddd;}
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
 
 /* Show the dropdown menu on hover */
-.dropdown:hover .dropdown-content {display: block;}
+.dropdown:hover .dropdown-content {
+    display: block;
+}
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
 /* p {
@@ -269,16 +314,19 @@ a {
     color: whitesmoke;
     width: 20vw;
 }
+
 .audio-component {
-    width: 390px; /* Set a fixed width */
+    width: 390px;
+    /* Set a fixed width */
     height: 15vh;
     border-radius: 10px;
     margin: 10px 0 10px 0;
     display: flex;
     flex-direction: row;
-    align-items: center; 
+    align-items: center;
     justify-content: center;
 }
+
 .character-div {
     font-size: 12px;
     overflow: scroll;
@@ -286,7 +334,8 @@ a {
 
 .sub-component {
     margin: 10px;
-    width: 300px; /* Set a fixed width */
+    width: 300px;
+    /* Set a fixed width */
 }
 
 .component-heading {
@@ -299,10 +348,11 @@ a {
     font-size: 12px;
     color: #666;
 }
-.load-more{
+
+.load-more {
     width: 40%;
     height: 30px;
-    color: gray; 
+    color: gray;
     background-color: #fff;
     border: none;
     border-radius: 5px;
@@ -315,14 +365,16 @@ a {
     margin: 0 30% 0 30%;
 }
 
-.loading{
+.loading {
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 /* CSS */
 .myHoverButton {
-    display: none; /* Hidden by default */
+    display: none;
+    /* Hidden by default */
     background-color: #f4511e;
     border: none;
     color: white;
@@ -334,14 +386,17 @@ a {
     transition: 0.3s;
 }
 
-p:hover + #myHoverButton {
+p:hover+#myHoverButton {
     transition: 0.3s;
-    display: block; /* Show the button on paragraph hover */
+    display: block;
+    /* Show the button on paragraph hover */
     color: aqua;
 }
-.email{
+
+.email {
     font-style: bold;
 }
+
 .menu {
     height: 480px;
     margin-bottom: 10px;

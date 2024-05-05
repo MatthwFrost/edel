@@ -12,7 +12,7 @@
                     </button>
                     <div class="dropdown-menu" data-dropdown-menu>
                         <div class="volume-selector">
-                            <input type=range id="volume-range" style="writing-mode: vertical-lr" min="0" max="1" step="0.01">
+                            <input type=range id="volume-range" style="writing-mode: vertical-rl" min="0" max="1" step="0.01">
                         </div>
                     </div>
                 </div>
@@ -40,12 +40,12 @@
                         </div>
                     </div>
                 </div>
+                <button class="dropdown-button reset" id="reset-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rotate-cw"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </button>
             </div>
             <div class="player-container" id="player-container">
                 <div class="player-container-child">
-                    <button class="reset-button" id="reset-button" hidden>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rotate-cw"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                    </button>
                     <div class="player-button-group">
                         <button class="bskip-button" id="bskip-button" hidden>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-back"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>

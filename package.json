@@ -27,6 +27,7 @@
     "webpack": "^5.91.0"
   },
   "dependencies": {
+    "howler": "^2.2.4",
     "soundtouchjs": "^0.1.30",
     "tone": "^14.7.77"
   }

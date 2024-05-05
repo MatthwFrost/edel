@@ -5,7 +5,7 @@
 }
 .main-container { 
     position: relative;
-    width: 125px;
+    width: 150px;
     height: 36px;
 }
 .player-container {
@@ -14,10 +14,10 @@
     top: 0;
     margin: 0;
     padding: 0;
-    border-radius: 10px 0px 0px 10px;
-    width: 30%; /* Adjust width as per requirement */
+    border-radius: 15px 0px 0px 15px;
+    width: 25%; /* Adjust width as per requirement */
     height: 100%;
-    background-color: #084b83;
+    background-color: #20a4f3;
     transition: width 0.3s ease, opacity 0.2s ease-in; /* Smooth transition for hover effect */
     display: flex;
     align-items: center; /* Center content vertically */
@@ -34,6 +34,7 @@
     justify-content: center;
     align-items: center;
     margin-bottom: 0.5px;
+    margin-left: 4px;
     width: 80%;
 }
 .settings-container{
@@ -41,7 +42,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 70%; /* Adjust width as per requirement */
+    width: 75%; /* Adjust width as per requirement */
     border-radius: 10px 0px 0px 10px;
     background-color: rgba(15, 17, 12, 0.7);
     transform: translateX(200%); /* Hide the left content by default */
@@ -65,11 +66,11 @@ button {
     width: 16px;
     height: 16px;
 }
-.reset-button {
-    transition: 500ms ease-in-out;
+.reset {
+    transition: rotate 500ms ease-in-out;
     margin-right: 10px;
 }
-.reset-button:hover {
+.reset:hover {
     rotate: 20deg;
 }
 
@@ -161,4 +162,16 @@ input[type="range"]{
 div {
     margin: 0;
     padding: 0;
+}
+
+.player-button {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.volume-selector {
+    rotate: 180deg;
 }

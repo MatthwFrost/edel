@@ -78,9 +78,11 @@ async function setupReadelExtension(shadowRoot) {
   });
 
   elements.resetButton.addEventListener('click', () => {
+    if (playing){
+      handleUIChange(false);
+    }
     playedBefore = false; // Want to move this into the class.
     playing = false;
-    handleUIChange(false);
     player.reset();
   })
 
@@ -115,11 +117,13 @@ async function setupReadelExtension(shadowRoot) {
    * @description Handle any ui changes based on play state.
    */
   function handleUIChange(isPlaying) {
-    elements.mainContainer.style.width = isPlaying ? "250px" : "125px";
-    elements.settingsContainer.style.width = isPlaying ? "40%" : "70%";
-    elements.playerContainer.style.width = isPlaying ? "60%" : "30%";
-    elements.playButton.innerHTML = isPlaying ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-pause"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+    elements.mainContainer.style.width = isPlaying ? "200px" : "150px";
+    elements.settingsContainer.style.width = isPlaying ? "60%" : "75%";
+    elements.playerContainer.style.width = isPlaying ? "40%" : "25%";
+    elements.playButton.innerHTML = isPlaying 
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-pause"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
       : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+
     setTimeout(() => {
       elements.forwardButton.hidden = !elements.forwardButton.hidden;
       elements.backwardButton.hidden = !elements.backwardButton.hidden;
