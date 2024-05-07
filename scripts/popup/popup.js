@@ -120,7 +120,7 @@ async function getCharacters(userInfo){
     pending.textContent = "Pending...";
     setCharacters.appendChild(pending);
 
-    const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/dev/getCharacters?user=${userInfo}`;
+    const url = `https://82p6i611i7.execute-api.eu-central-1.amazonaws.com/default/getCharacters?user=${userInfo}`;
     const responseChar = await fetch(url);
     const dataChar = await responseChar.json();
     const READING_TIME = getCharacterEstimation(dataChar.MAX_CHARACTERS, dataChar.characters);
@@ -140,7 +140,7 @@ async function getCharacters(userInfo){
     // }
 
     // characters.textContent = `${dataChar.characters}/${dataChar.MAX_CHARACTERS} (~${Math.round(READING_TIME)} mins)`;
-    characters.innerHTML = `<p><span class=${overLimit ? 'redText' : 'greenText'}>${dataChar.characters} Characters</span></p>`
+    characters.innerHTML = `<p><span class=${overLimit ? 'redText' : 'greenText'}>${dataChar.characters}</span/>/${dataChar.MAX_CHARACTERS}</p>`
     characters.style.display = 'flex';
     characters.style.alignItems = 'center';
     characters.style.justifyContent = 'center';

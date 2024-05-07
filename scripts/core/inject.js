@@ -1,128 +1,140 @@
 import AudioPlayer from './audioPlayer.js'
 
-function injectHTMLAndCSS() {
-  const htmlUrl = chrome.runtime.getURL('scripts/style/injectedContent.html');
-  const cssUrl = chrome.runtime.getURL('scripts/style/elementStyle.css');
+function injectHTMLAndCSS(injected) {
+  if (injected){
+    const htmlUrl = chrome.runtime.getURL('scripts/style/injectedContent.html');
+    const cssUrl = chrome.runtime.getURL('scripts/style/elementStyle.css');
 
-  Promise.all([
-    fetch(htmlUrl).then(response => {
-      if (!response.ok) throw new Error('Failed to load HTML');
-      return response.text();
-    }),
-    fetch(cssUrl).then(response => {
-      if (!response.ok) throw new Error('Failed to load CSS');
-      return response.text();
-    })
-  ])
-    .then(([htmlData, cssData]) => {
-      const rootHtml = document.documentElement;
-      const shadowHost = document.createElement('readel-extension');
-      shadowHost.id = 'readel-extension';
-      const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+    Promise.all([
+      fetch(htmlUrl).then(response => {
+        if (!response.ok) throw new Error('Failed to load HTML');
+        return response.text();
+      }),
+      fetch(cssUrl).then(response => {
+        if (!response.ok) throw new Error('Failed to load CSS');
+        return response.text();
+      })
+    ])
+      .then(([htmlData, cssData]) => {
+        const rootHtml = document.documentElement;
+        const shadowHost = document.createElement('readel-extension');
+        shadowHost.id = 'readel-extension';
+        const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
 
-      const style = document.createElement('style');
-      style.textContent = cssData;
-      shadowRoot.appendChild(style);
+        const style = document.createElement('style');
+        style.textContent = cssData;
+        shadowRoot.appendChild(style);
 
-      const div = document.createElement('div');
-      div.innerHTML = htmlData;
-      shadowRoot.appendChild(div);
+        const div = document.createElement('div');
+        div.innerHTML = htmlData;
+        shadowRoot.appendChild(div);
 
-      rootHtml.appendChild(shadowHost);
+        rootHtml.appendChild(shadowHost);
 
-      setupReadelExtension(shadowRoot);
-    })
-    .catch(err => console.error('Failed to load resources:', err));
+        setupReadelExtension(shadowRoot);
+      })
+      .catch(err => console.error('Failed to load resources:', err));
+  } else{
+    setupReadelExtension()
+  }
 }
 
-async function setupReadelExtension(shadowRoot) {
+async function setupReadelExtension(shadowRoot = null) {
   // Add all event listeners and setup logic after HTML/CSS have been loaded
   // ----- Logic ------
-  const elements = setElements(shadowRoot);
-  const { volumeValue, playbackRate } = await getPlaybackAndVolume();
-  console.log(volumeValue, playbackRate);
-
-  // set saved values;
-  elements.volumeRange.value = volumeValue;
-  elements.playbackButton.textContent = playbackRate + "x";
-
-  let player;
+  let elements;
   let playing = false;
   let playedBefore = false;
-  player = new AudioPlayer();
-  elements.playButton.addEventListener('click', () => {
-    playing = !playing;
-    handleUIChange(playing)
-    if (playing) {
-      if (playedBefore) {
-        player.resume();
-        console.log("resuming...")
+  let player = new AudioPlayer();
+
+  if(shadowRoot){
+    elements = setElements(shadowRoot);
+    const { volumeValue, playbackRate } = await getPlaybackAndVolume();
+    // console.log(volumeValue, playbackRate);
+
+    // set saved values;
+    elements.volumeRange.value = volumeValue;
+    elements.playbackButton.textContent = playbackRate + "x";
+    elements.playButton.addEventListener('click', async () => {
+      playing = !playing;
+      handleUIChange(playing, elements)
+      if (playing) {
+        if (playedBefore) {
+          player.resume();
+          // console.log("resuming...")
+        } else {
+          const sentences = fetchAllText();
+          const user = await player.getUser();
+          const res = await player.getCharacters(user.return);
+          const characters = parseInt(res.characters);
+          const max_characters = parseInt(res.MAX_CHARACTERS);
+          const sentence = sentences[0];
+
+          if(characters + sentence.length >= max_characters){
+              alert("You have used all of your characters. Characters will reset tomorrow or you can raise your daily limit. Find more here: https://www.readel.app/buycredits.");
+              handleUIChange(false, elements);
+              return;
+          }
+          player.startPlaybackCycle(sentences);
+          // console.log("playing...");
+          playedBefore = true;
+        }
       } else {
-        const sentences = fetchAllText();
-        player.startPlaybackCycle(sentences);
-        console.log("playing...");
-        playedBefore = true;
+        player.pause();
+        // console.log("pausing...");
       }
-    } else {
-      player.pause();
-      console.log("pausing...");
-    }
-  });
+    });
 
-  elements.backwardButton.addEventListener('click', () => {
-    player.skipBackward();
-  });
+    elements.backwardButton.addEventListener('click', () => {
+      player.skipBackward();
+    });
 
-  elements.forwardButton.addEventListener('click', () => {
-    player.skipForward();
-  });
+    elements.forwardButton.addEventListener('click', () => {
+      player.skipForward();
+    });
 
-  elements.resetButton.addEventListener('click', () => {
-    if (playing){
-      handleUIChange(false);
-    }
-    playedBefore = false; // Want to move this into the class.
-    playing = false;
-    player.reset();
-  })
+    elements.resetButton.addEventListener('click', () => {
+      if (playing){
+        handleUIChange(false, elements);
+      }
+      playedBefore = false; // Want to move this into the class.
+      playing = false;
+      player.reset();
+    })
 
-  elements.volumeRange.addEventListener('input', function () {
-    if (player) {
-      player.setVolume(this.value);
-    }
-    chrome.storage.local.set({ 'volumeValue': this.value });
-  })
-
-  elements.playbackContainer.addEventListener('click', e => {
-    // Check if the clicked element is a link
-    console.log("Click detected within shadow DOM");
-    const link = e.target.closest('.dropdown-menu-link');
-    if (link) {
-      e.preventDefault(); // Prevent the default link behavior
-      const playbackRate = link.getAttribute('data-id');
-      console.log('Selected playback rate:', playbackRate);
+    elements.volumeRange.addEventListener('input', function () {
       if (player) {
-        player.setPlaybackRate(parseFloat(playbackRate));
-        console.log('player is going');
-      };
-      elements.playbackButton.textContent = playbackRate + "x";
-      chrome.storage.local.set({ 'playbackRate': playbackRate });
-    }
-  });
+        player.setVolume(this.value);
+      }
+      chrome.storage.local.set({ 'volumeValue': this.value });
+    })
 
-  setupEventListeners(shadowRoot);
+    elements.playbackContainer.addEventListener('click', e => {
+      // Check if the clicked element is a link
+      const link = e.target.closest('.dropdown-menu-link');
+      if (link) {
+        e.preventDefault(); // Prevent the default link behavior
+        const playbackRate = link.getAttribute('data-id');
+        if (player) {
+          player.setPlaybackRate(parseFloat(playbackRate));
+        };
+        elements.playbackButton.textContent = playbackRate + "x";
+        chrome.storage.local.set({ 'playbackRate': playbackRate });
+      }
+    });
 
-  /**
-   * @param {Boolean} isPlaying
-   * @description Handle any ui changes based on play state.
-   */
-  function handleUIChange(isPlaying) {
+    setupEventListeners(shadowRoot);
+  }
+ 
+  function handleUIChange(isPlaying, elements) {
     elements.mainContainer.style.width = isPlaying ? "200px" : "150px";
     elements.settingsContainer.style.width = isPlaying ? "60%" : "75%";
     elements.playerContainer.style.width = isPlaying ? "40%" : "25%";
     elements.playButton.innerHTML = isPlaying 
       ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-pause"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
       : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+    elements.playButton.style.marginLeft = isPlaying ? "0px" : "3px";
+    elements.playButton.style.marginTop = isPlaying ? "0px" : "1px";
 
     setTimeout(() => {
       elements.forwardButton.hidden = !elements.forwardButton.hidden;
@@ -140,28 +152,31 @@ async function setupReadelExtension(shadowRoot) {
     if (request.greeting === "clicked") {
       // Starts the audio fetching process.
       playing = true;
-      handleUIChange(true);
-
+      if(shadowRoot){
+        handleUIChange(true, elements);
+      }
       if (playing) {
         if (playedBefore) {
           player.resume();
-          console.log("resuming...")
+          // console.log("resuming...")
         } else {
           const text = window.getSelection().toString().trim(); // Get selected text
           const allPageText = getPageText();
           const sentences = fetchFromSelectedText(allPageText, text);
           player.startPlaybackCycle(sentences);
-          console.log("playing...");
+          // console.log("playing...");
           playedBefore = true;
         }
       } else {
         player.pause();
-        console.log("pausing...");
+        // console.log("pausing...");
       }
     }
     else if (request.greeting === "stop") {
       playing = false;
-      handleUIChange(false);
+      if(shadowRoot){
+        handleUIChange(false, elements);
+      }
       player.pause();
     } else if (request.greeting === "out") {
       alert("Readel has ran out of characters");
@@ -234,7 +249,7 @@ function fetchFromSelectedText(text, selectedText) {
 
   // Check if the selectedText is found
   if (searchTerm === -1) {
-    console.log("Selected text not found in the main body of the text.");
+    // console.log("Selected text not found in the main body of the text.");
     return splitIntoSentences(selectedText);
   }
 
@@ -266,5 +281,14 @@ function setElements(shadowRoot) {
   return elements;
 }
 
-// Call the function to inject HTML and CSS
-injectHTMLAndCSS();
+// Injection Methods
+function injectExtension(){
+  const text = getPageText();
+  if (text.length >= 200){
+    injectHTMLAndCSS(true);
+  }else {
+    injectHTMLAndCSS(false);
+  }
+}
+
+injectExtension();

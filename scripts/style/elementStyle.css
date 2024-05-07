@@ -17,7 +17,7 @@
     border-radius: 15px 0px 0px 15px;
     width: 25%; /* Adjust width as per requirement */
     height: 100%;
-    background-color: #20a4f3;
+    background-color: rgb(59 130 246);
     transition: width 0.3s ease, opacity 0.2s ease-in; /* Smooth transition for hover effect */
     display: flex;
     align-items: center; /* Center content vertically */
@@ -113,7 +113,7 @@ svg {
     position: absolute;
     right: 0;
     bottom: calc(100% + 0.25rem);
-    background-color: #0f110c;
+    background-color: rgba(15, 17, 12, 0.9);
     border-radius: .25rem;
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.1);
     opacity: 0;
@@ -167,9 +167,12 @@ div {
 .player-button {
     width: 25px;
     height: 25px;
+    margin-left: 3px;
+    margin-top: 1px;
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 999;
 }
 
 .volume-selector {

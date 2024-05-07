@@ -1,6 +1,6 @@
 const path = "build/inject.js";
 const cssPath = "scripts/stylesheet.css";
-const authID = "227012789435-pa387n3clvnggph2b7vl7l8im8helq25.apps.googleusercontent.com";
+const authID = "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com";
 let tabID;
 // let keepFetching = true;
 let interval = 500;
