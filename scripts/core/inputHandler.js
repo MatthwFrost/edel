@@ -6,6 +6,7 @@ import {
     applySentenceRange, showMissPulse
 } from './highlighter.js';
 import { isRuntimeAlive } from './runtimeHealth.js';
+import { forwardToChildIframe } from './frameGuard.js';
 
 const HOLD_THRESHOLD = 300;
 const DOUBLE_TAP_WINDOW = 300;
@@ -50,6 +51,7 @@ export class InputHandler {
         this._runtimeDead = false;
         this._AudioPlayerCtor = null;
         this._pendingTarget = null;
+        this._pendingIframe = null;
 
         this._onKeyDown = this._onKeyDown.bind(this);
         this._onKeyUp = this._onKeyUp.bind(this);
@@ -134,6 +136,22 @@ export class InputHandler {
             return;
         }
 
+        const hitForIframe = document.elementFromPoint(this._lastMouseX, this._lastMouseY);
+        if (hitForIframe && hitForIframe.tagName === 'IFRAME') {
+            this.altDown = true;
+            this._pendingIframe = hitForIframe;
+            this.holdDelayTimer = setTimeout(() => {
+                this.holdDelayTimer = null;
+                if (this.altDown && this._pendingIframe) {
+                    forwardToChildIframe(this._pendingIframe, this._lastMouseX, this._lastMouseY, 'hold');
+                    this.mode = 'iframe-delegated';
+                    this._pendingIframe = null;
+                }
+            }, HOLD_THRESHOLD);
+            return;
+        }
+        this._pendingIframe = null;
+
         this.altDown = true;
 
         const resolved = resolveTextBlockAtPoint(this._lastMouseX, this._lastMouseY);
@@ -183,7 +201,13 @@ export class InputHandler {
             const now = Date.now();
             if (now - this.lastAltRelease < DOUBLE_TAP_WINDOW) {
                 this.lastAltRelease = 0;
-                this._startContinuousReading();
+                if (this._pendingIframe) {
+                    forwardToChildIframe(this._pendingIframe, this._lastMouseX, this._lastMouseY, 'continuous');
+                    this.mode = 'iframe-delegated';
+                    this._pendingIframe = null;
+                } else {
+                    this._startContinuousReading();
+                }
             } else {
                 this.lastAltRelease = now;
                 clearHoverTarget();
