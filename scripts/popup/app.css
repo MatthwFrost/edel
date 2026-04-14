@@ -341,5 +341,3 @@ kbd {
     line-height: 1;
 }
 
-#voice-select optgroup[label="Beta"] { color: #ec4899; }
-#voice-select optgroup[label="Beta"] option { color: #ec4899; }

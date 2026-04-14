@@ -15,29 +15,63 @@ export function injectHighlightStyles() {
         .readel-hover-target {
             background-color: rgba(59, 130, 246, 0.08) !important;
             border-radius: 4px;
-            transition: background-color 0.15s ease;
+            box-shadow: inset 2px 0 0 rgba(59, 130, 246, 0);
+            animation: readel-hover-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+            transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+                        box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .readel-loading {
             background-color: rgba(59, 130, 246, 0.08) !important;
             border-left: 3px solid rgba(59, 130, 246, 0.4) !important;
             padding-left: 8px !important;
             border-radius: 2px;
-            animation: readel-pulse 1.2s ease-in-out infinite;
+            animation: readel-breathe 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
         }
         .readel-sentence-active {
             background-color: rgba(59, 130, 246, 0.08) !important;
             border-left: 3px solid rgba(59, 130, 246, 0.5) !important;
             padding-left: 8px !important;
             border-radius: 2px;
-            transition: all 0.15s ease;
+            animation: readel-sentence-bloom 420ms cubic-bezier(0.22, 1, 0.36, 1);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
         ::highlight(readel-current-sentence) {
             background-color: rgba(59, 130, 246, 0.2);
             border-radius: 2px;
         }
-        @keyframes readel-pulse {
-            0%, 100% { background-color: rgba(59, 130, 246, 0.06) !important; }
-            50% { background-color: rgba(59, 130, 246, 0.15) !important; }
+        @keyframes readel-hover-in {
+            0% {
+                background-color: rgba(59, 130, 246, 0);
+                box-shadow: inset 2px 0 0 rgba(59, 130, 246, 0);
+            }
+            100% {
+                background-color: rgba(59, 130, 246, 0.08);
+                box-shadow: inset 2px 0 0 rgba(59, 130, 246, 0.25);
+            }
+        }
+        @keyframes readel-breathe {
+            0%, 100% {
+                background-color: rgba(59, 130, 246, 0.06) !important;
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+            50% {
+                background-color: rgba(59, 130, 246, 0.14) !important;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+            }
+        }
+        @keyframes readel-sentence-bloom {
+            0% {
+                background-color: rgba(59, 130, 246, 0.04) !important;
+                border-left-color: rgba(59, 130, 246, 0.2) !important;
+            }
+            45% {
+                background-color: rgba(59, 130, 246, 0.16) !important;
+                border-left-color: rgba(59, 130, 246, 0.8) !important;
+            }
+            100% {
+                background-color: rgba(59, 130, 246, 0.08) !important;
+                border-left-color: rgba(59, 130, 246, 0.5) !important;
+            }
         }
 
         /* Error toast */
