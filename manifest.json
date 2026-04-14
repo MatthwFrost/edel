@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Readel — Hold Alt to Read Aloud",
+  "name": "Readel - Hold Alt to Read Aloud",
   "version": "2.1.0",
   "description": "Modern, minimal, free text-to-speech. Hold Alt over any text to listen. No sign-up, no buttons, no menus.",
   "permissions": [
