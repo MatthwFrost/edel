@@ -52,6 +52,17 @@ body {
     color: var(--rd-ink);
 }
 
+.logo-beta {
+    font-family: var(--rd-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: lowercase;
+    color: var(--rd-blue);
+    margin-left: 4px;
+    align-self: center;
+}
+
 /* ---- Controls ---- */
 .controls {
     background: var(--rd-paper);
