@@ -218,10 +218,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const responseTimeEl = document.getElementById('response-time');
     chrome.storage.local.get('avgResponseTime', (items) => {
         const avg = items.avgResponseTime;
-        if (avg) {
-            const ms = Math.round(avg);
-            const dotClass = ms < 200 ? 'fast' : ms < 500 ? 'medium' : 'slow';
-            responseTimeEl.innerHTML = `<span class="response-dot ${dotClass}"></span> Avg response: ${ms}ms`;
-        }
+        if (!avg) return;
+        const ms = Math.round(avg);
+        const dotClass = ms < 200 ? 'fast' : ms < 500 ? 'medium' : 'slow';
+        responseTimeEl.replaceChildren();
+        const dot = document.createElement('span');
+        dot.className = `response-dot ${dotClass}`;
+        responseTimeEl.appendChild(dot);
+        responseTimeEl.appendChild(document.createTextNode(`${ms}MS`));
     });
 });
