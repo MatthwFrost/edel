@@ -95,6 +95,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             chrome.runtime.sendMessage({ action: 'offscreen-stop' }).catch(() => {});
         }
         activeTtsTabId = sender.tab?.id;
+        if (typeof message.sentence === 'string' && message.sentence.length > 0) {
+            chrome.storage.local.get('charactersUsed', (items) => {
+                const current = typeof items.charactersUsed === 'number' ? items.charactersUsed : 0;
+                chrome.storage.local.set({ charactersUsed: current + message.sentence.length });
+            });
+        }
         (async () => {
             try {
                 console.log('[Readel bg] ensuring offscreen...');

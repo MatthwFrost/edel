@@ -214,6 +214,24 @@ document.addEventListener('DOMContentLoaded', () => {
         showRefresh();
     });
 
+    // Character usage display
+    const charsUsedEl = document.getElementById('chars-used');
+    function formatChars(n) {
+        if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+        if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+        return n.toLocaleString();
+    }
+    function renderChars() {
+        chrome.storage.local.get('charactersUsed', (items) => {
+            const used = typeof items.charactersUsed === 'number' ? items.charactersUsed : 0;
+            charsUsedEl.textContent = `${formatChars(used)} CHARS`;
+        });
+    }
+    renderChars();
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.charactersUsed) renderChars();
+    });
+
     // Response time display
     const responseTimeEl = document.getElementById('response-time');
     chrome.storage.local.get('avgResponseTime', (items) => {
