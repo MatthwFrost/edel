@@ -1,3 +1,24 @@
+export function isReadableBlock(el) {
+  if (!el || el.nodeType !== Node.ELEMENT_NODE || !el.isConnected) return false;
+  const tag = el.tagName;
+  if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return false;
+  if (tag === 'SVG' || tag === 'IFRAME' || tag === 'CANVAS') return false;
+
+  const style = getComputedStyle(el);
+  if (!style) return false;
+  if (style.visibility === 'hidden' || style.display === 'none') return false;
+  if (style.display && style.display.startsWith('inline')) return false;
+
+  let ownText = '';
+  for (const child of el.childNodes) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      ownText += child.textContent;
+      if (ownText.trim().length >= 2) return true;
+    }
+  }
+  return ownText.trim().length >= 2;
+}
+
 const BLOCK_TAGS = new Set([
     'P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
     'BLOCKQUOTE', 'TD', 'TH', 'FIGCAPTION', 'PRE', 'DD', 'DT'
