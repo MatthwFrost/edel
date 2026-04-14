@@ -69,15 +69,6 @@ export function resolveTextBlockAtPoint(x, y) {
   return null;
 }
 
-const BLOCK_TAGS = new Set([
-    'P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
-    'BLOCKQUOTE', 'TD', 'TH', 'FIGCAPTION', 'PRE', 'DD', 'DT'
-]);
-
-const SKIP_TAGS = new Set([
-    'SCRIPT', 'STYLE', 'NAV', 'FOOTER', 'HEADER', 'ASIDE',
-    'NOSCRIPT', 'SVG', 'IFRAME', 'FORM', 'INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'
-]);
 
 function buildSentenceRanges(element, sentences) {
     const ranges = [];
@@ -150,8 +141,8 @@ export function getTextFromSelectionOnward(selectedText) {
     let startNode = range.startContainer;
     if (startNode.nodeType === Node.TEXT_NODE) startNode = startNode.parentElement;
 
-    // Walk up to nearest block element
-    while (startNode && !BLOCK_TAGS.has(startNode.tagName) && startNode !== document.body) {
+    // Walk up to nearest readable block element
+    while (startNode && !isReadableBlock(startNode) && startNode !== document.body) {
         startNode = startNode.parentElement;
     }
 
@@ -178,57 +169,146 @@ export function getTextFromSelectionOnward(selectedText) {
     };
 }
 
+export function findScopeRoot(startEl) {
+  let el = startEl && startEl.parentElement;
+  while (el && el !== document.body) {
+    const elText = el.innerText || el.textContent || '';
+    const textLen = elText.length;
+    if (textLen > 500) {
+      let linkLen = 0;
+      for (const a of el.querySelectorAll('a')) {
+        linkLen += (a.innerText || a.textContent || '').length;
+      }
+      const ratio = (textLen - linkLen) / textLen;
+      if (ratio > 0.4) return el;
+    }
+    el = el.parentElement;
+  }
+  return document.body;
+}
+
+function isSkippableForWalk(el) {
+  if (el.tagName === 'ASIDE') return true;
+  const role = el.getAttribute && el.getAttribute('role');
+  if (role === 'navigation' || role === 'complementary') return true;
+  if (el.getAttribute && el.getAttribute('aria-hidden') === 'true') return true;
+  const style = getComputedStyle(el);
+  if (style && (style.position === 'fixed' || style.position === 'sticky')) {
+    const rect = el.getBoundingClientRect();
+    if (rect.height > 0 && rect.height < 80) return true;
+  }
+  return false;
+}
+
+function tokenSet(text) {
+  return new Set(
+    text.toLowerCase().replace(/\s+/g, ' ').trim().split(' ').filter(t => t.length > 2)
+  );
+}
+
+function overlapRatio(prev, next) {
+  if (!prev || !next) return 0;
+  const a = tokenSet(prev);
+  const b = tokenSet(next);
+  if (a.size < 4 || b.size < 4) return 0;
+  let intersection = 0;
+  for (const t of a) if (b.has(t)) intersection++;
+  return intersection / Math.min(a.size, b.size);
+}
+
+const CHAR_CLIP = 30000;
+
 export function getTextFromElementOnward(startElement) {
-    const sentences = [];
-    const sentenceMap = [];
+  const sentences = [];
+  const sentenceMap = [];
+  let totalChars = 0;
+  let lastBlockText = '';
 
-    const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_ELEMENT,
-        {
-            acceptNode(node) {
-                if (SKIP_TAGS.has(node.tagName)) return NodeFilter.FILTER_REJECT;
-                if (BLOCK_TAGS.has(node.tagName)) return NodeFilter.FILTER_ACCEPT;
-                return NodeFilter.FILTER_SKIP;
-            }
-        }
-    );
+  const scopeRoot = findScopeRoot(startElement);
 
-    // Advance walker to startElement or past it
-    let found = false;
-    let current = walker.nextNode();
-    while (current) {
-        if (current === startElement || startElement.contains(current) || current.contains(startElement)) {
-            found = true;
-            break;
-        }
-        current = walker.nextNode();
+  const walker = document.createTreeWalker(
+    scopeRoot,
+    NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode(node) {
+        if (isSkippableForWalk(node)) return NodeFilter.FILTER_REJECT;
+        if (isReadableBlock(node)) return NodeFilter.FILTER_ACCEPT;
+        return NodeFilter.FILTER_SKIP;
+      }
     }
+  );
 
-    if (!found) {
-        // Fallback: just use the startElement itself
-        const text = (startElement.innerText || '').trim();
-        const elementSentences = splitIntoSentences(text);
-        elementSentences.forEach(s => {
-            sentences.push(s);
-            sentenceMap.push({ element: startElement });
-        });
-        return { sentences, sentenceMap };
+  let found = false;
+  let current = walker.nextNode();
+  while (current) {
+    if (current === startElement || startElement.contains(current) || current.contains(startElement)) {
+      found = true;
+      break;
     }
+    current = walker.nextNode();
+  }
 
-    // Collect from current position onward
-    while (current) {
-        const text = (current.innerText || '').trim();
-        if (text.length > 0) {
-            const elementSentences = splitIntoSentences(text);
-            const ranges = buildSentenceRanges(current, elementSentences);
-            elementSentences.forEach((s, i) => {
-                sentences.push(s);
-                sentenceMap.push({ element: current, range: ranges[i] || null });
-            });
-        }
-        current = walker.nextNode();
+  if (!found) {
+    const text = (startElement.innerText || startElement.textContent || '').trim();
+    for (const s of splitIntoSentences(text)) {
+      sentences.push(s);
+      sentenceMap.push({ element: startElement });
     }
-
     return { sentences, sentenceMap };
+  }
+
+  while (current) {
+    const blockText = (current.innerText || current.textContent || '').trim();
+    if (blockText.length > 0 && overlapRatio(lastBlockText, blockText) < 0.9) {
+      const elementSentences = splitIntoSentences(blockText);
+      const ranges = buildSentenceRanges(current, elementSentences);
+      for (let i = 0; i < elementSentences.length; i++) {
+        const s = elementSentences[i];
+        if (totalChars + s.length > CHAR_CLIP) {
+          return { sentences, sentenceMap };
+        }
+        sentences.push(s);
+        sentenceMap.push({ element: current, range: ranges[i] || null });
+        totalChars += s.length;
+      }
+      lastBlockText = blockText;
+    }
+    current = walker.nextNode();
+  }
+
+  // Second pass: open shadow roots within scope. Closed shadow roots are invisible to us.
+  const hosts = scopeRoot.querySelectorAll('*');
+  for (const host of hosts) {
+    const shadow = host.shadowRoot;
+    if (!shadow || shadow.mode !== 'open') continue;
+    const shadowWalker = document.createTreeWalker(
+      shadow,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode(node) {
+          if (isSkippableForWalk(node)) return NodeFilter.FILTER_REJECT;
+          if (isReadableBlock(node)) return NodeFilter.FILTER_ACCEPT;
+          return NodeFilter.FILTER_SKIP;
+        }
+      }
+    );
+    let sCur = shadowWalker.nextNode();
+    while (sCur) {
+      const blockText = (sCur.innerText || sCur.textContent || '').trim();
+      if (blockText.length > 0) {
+        const elementSentences = splitIntoSentences(blockText);
+        for (const s of elementSentences) {
+          if (totalChars + s.length > CHAR_CLIP) {
+            return { sentences, sentenceMap };
+          }
+          sentences.push(s);
+          sentenceMap.push({ element: sCur, range: null });
+          totalChars += s.length;
+        }
+      }
+      sCur = shadowWalker.nextNode();
+    }
+  }
+
+  return { sentences, sentenceMap };
 }
