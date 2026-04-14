@@ -235,6 +235,29 @@ export function injectHighlightStyles() {
             height: 14px;
             background: #333;
         }
+
+        /* Miss pulse */
+        .readel-miss-pulse {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(107, 114, 128, 0.55);
+            pointer-events: none;
+            z-index: 2147483647;
+            transform: translate(-50%, -50%) scale(0.6);
+            opacity: 0;
+            transition: opacity 80ms ease-out, transform 80ms ease-out;
+        }
+        .readel-miss-pulse.readel-miss-pulse-visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .readel-miss-pulse.readel-miss-pulse-fading {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(1.2);
+            transition: opacity 220ms ease-in, transform 220ms ease-in;
+        }
     `;
     document.head.appendChild(style);
     styleInjected = true;
@@ -525,4 +548,16 @@ export function showOnboarding() {
         }, 15000);
     });
     } catch (e) { /* extension context invalidated */ }
+}
+
+// ---- Miss pulse ----
+export function showMissPulse(x, y) {
+    const pulse = document.createElement('div');
+    pulse.className = 'readel-miss-pulse';
+    pulse.style.left = x + 'px';
+    pulse.style.top = y + 'px';
+    document.body.appendChild(pulse);
+    requestAnimationFrame(() => pulse.classList.add('readel-miss-pulse-visible'));
+    setTimeout(() => pulse.classList.add('readel-miss-pulse-fading'), 80);
+    setTimeout(() => { if (pulse.parentNode) pulse.remove(); }, 400);
 }
