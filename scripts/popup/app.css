@@ -256,19 +256,19 @@ body {
     letter-spacing: 0.8px;
     text-transform: uppercase;
     color: #fff;
-    background: var(--rd-ink);
+    background: var(--rd-blue);
     border: var(--rd-border);
     border-radius: 6px;
     cursor: pointer;
     outline: none;
     text-align: center;
-    box-shadow: 3px 3px 0 var(--rd-blue);
+    box-shadow: 3px 3px 0 var(--rd-ink);
     transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
 }
 
 .apply-btn:hover {
-    background: var(--rd-blue);
-    box-shadow: 3px 3px 0 var(--rd-ink);
+    background: var(--rd-ink);
+    box-shadow: 3px 3px 0 var(--rd-blue);
 }
 
 .apply-btn:active {
