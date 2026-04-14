@@ -259,15 +259,17 @@ New behavior: `mousemove` listener stores only `{ lastX, lastY }`. Resolution ha
 | Cursor over image / video / padding | Step 2 (elementFromPoint walk-up) | Reads nearest block |
 | CSS `pointer-events: none` on wrapper | Step 1 (caret ignores pointer-events) | Reads text |
 | Active text selection | Step 3 | Reads selection |
-| Cross-origin iframe | All steps fail in parent | Silent |
-| `<canvas>`-rendered text | All steps fail | Silent |
-| SVG text nodes | Step 1 reaches `<svg>`, which is skipped | Silent |
+| Cross-origin iframe | All steps fail in parent | Miss pulse |
+| `<canvas>`-rendered text | All steps fail | Miss pulse |
+| SVG text nodes | Step 1 reaches `<svg>`, which is skipped | Miss pulse |
 | DOM mutated between resolve and speak | Range validity check before speak | Skip stale sentence |
 | WebSocket drop mid-session | Reconnect with exponential backoff on next speak | Resume |
 | 3 consecutive playback failures | Abort cycle | "Couldn't continue reading" toast |
 | Extension reloaded while page open | `runtimeHealth` detects on next keydown | "Needs refresh" toast |
 
-**Silent-failure principle.** When resolution fails with no selection (step 4), we do nothing. No toast, no flash. The user tried over an ad image or a canvas region — a toast would be noise. We surface errors only when playback was promised and then broken.
+**Miss indicator (step 4).** When resolution returns null, we show a subtle cursor-anchored miss pulse — a 12×12 px muted-gray circle that fades in over 80 ms and out over 220 ms at `(lastMouseX, lastMouseY)`. Total lifespan ~400 ms. This tells the user "Readel heard you but found no text" without interrupting their flow. Lives in `highlighter.js` as `showMissPulse(x, y)`, injected once into `injectHighlightStyles()`.
+
+Playback-promised-then-broken errors continue to use the existing `showToast` (bottom-center).
 
 ## 7. Testing Strategy
 
