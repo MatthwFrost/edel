@@ -46,11 +46,9 @@ body {
 }
 
 .logo-icon-img {
-    width: 28px;
-    height: 28px;
-    border: var(--rd-border);
-    border-radius: 6px;
-    background: var(--rd-paper);
+    width: 32px;
+    height: 32px;
+    background: transparent;
 }
 
 .logo-text {
