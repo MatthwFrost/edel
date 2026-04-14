@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Readel: Free, Modern Text to Speech",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Modern, minimal, free text-to-speech. Hold Alt over any text to listen. No sign-up, no buttons, no menus.",
   "permissions": [
     "storage",

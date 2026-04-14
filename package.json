@@ -1,6 +1,6 @@
 {
   "name": "Readel",
-  "version": "1.4.4",
+  "version": "2.1.0",
   "description": "Listen to text on a website by selecting, right click and click listen.",
   "main": "index.js",
   "scripts": {
