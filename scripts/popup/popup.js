@@ -59,21 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     voiceSelect.addEventListener('change', () => {
         chrome.storage.local.set({ 'voiceID': voiceSelect.value });
-        showRefresh();
     });
 
     speedSlider.addEventListener('input', () => {
         const v = parseInt(speedSlider.value);
         speedValue.textContent = sliderToDisplay(v) + 'x';
         chrome.storage.local.set({ 'playbackRate': sliderToActual(v).toFixed(2) });
-        showRefresh();
     });
 
     volumeSlider.addEventListener('input', () => {
         const vol = volumeSlider.value;
         volumeValue.textContent = Math.round(vol * 100) + '%';
         chrome.storage.local.set({ 'volumeValue': vol });
-        showRefresh();
     });
 
     // Hotkey picker
@@ -176,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
         hotkeyPicker.classList.remove('recording');
         hotkeyDisplay.textContent = formatHotkey(hotkey);
         chrome.storage.local.set({ 'hotkey': hotkey });
-        showRefresh();
     }
 
     // Clicking outside cancels recording
@@ -203,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     autoscrollToggle.addEventListener('change', () => {
         chrome.storage.local.set({ 'autoScrollEnabled': autoscrollToggle.checked });
-        showRefresh();
     });
 
     // Subtitles toggle
@@ -213,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     subtitlesToggle.addEventListener('change', () => {
         chrome.storage.local.set({ 'subtitlesEnabled': subtitlesToggle.checked });
-        showRefresh();
     });
 
     // Character usage display
