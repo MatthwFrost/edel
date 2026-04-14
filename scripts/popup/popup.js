@@ -12,16 +12,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (applyBanner) return;
         applyBanner = document.createElement('div');
         applyBanner.className = 'apply-banner';
-        applyBanner.innerHTML = '<button class="apply-btn">↻ Apply changes</button>';
-        document.querySelector('.container').appendChild(applyBanner);
-
-        applyBanner.querySelector('.apply-btn').addEventListener('click', () => {
+        const btn = document.createElement('button');
+        btn.className = 'apply-btn';
+        btn.textContent = '↻ Apply changes';
+        btn.addEventListener('click', () => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (tabs[0]) chrome.tabs.reload(tabs[0].id);
             });
             applyBanner.remove();
             applyBanner = null;
         });
+        applyBanner.appendChild(btn);
+        document.querySelector('.container').appendChild(applyBanner);
     }
 
     // Speed mapping: slider 0-100 → display 0.5x-2x → actual 0.6-1.5
