@@ -1,29 +1,41 @@
-import { getTextFromElement, getTextFromElementOnward, getTextFromSelection, getTextFromSelectionOnward } from './textExtractor.js';
-import { showHoverTarget, clearHoverTarget, showLoading, highlightElement, clearAllHighlights, scrollToElement, startScrollTracking, stopScrollTracking, showToast, showFullPagePill, hideFullPagePill, showSubtitle, hideSubtitle, applySentenceRange, clearSentenceHighlight } from './highlighter.js';
+import { resolveTextBlockAtPoint, getTextFromElement, getTextFromElementOnward, getTextFromSelection, getTextFromSelectionOnward } from './textExtractor.js';
+import {
+    showHoverTarget, clearHoverTarget, showLoading, highlightElement, clearAllHighlights,
+    scrollToElement, startScrollTracking, stopScrollTracking,
+    showToast, showFullPagePill, hideFullPagePill, showSubtitle, hideSubtitle,
+    applySentenceRange, showMissPulse
+} from './highlighter.js';
+import { isRuntimeAlive } from './runtimeHealth.js';
 
-const INLINE_TAGS = new Set([
-    'A', 'SPAN', 'EM', 'STRONG', 'B', 'I', 'CODE', 'MARK',
-    'SMALL', 'SUB', 'SUP', 'ABBR', 'CITE', 'Q', 'S', 'U', 'TIME'
-]);
+const HOLD_THRESHOLD = 300;
+const DOUBLE_TAP_WINDOW = 300;
 
-const BLOCK_TAGS = new Set([
-    'P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
-    'BLOCKQUOTE', 'TD', 'TH', 'FIGCAPTION', 'PRE', 'DD', 'DT',
-    'DIV', 'ARTICLE', 'SECTION'
-]);
+const COMPOSER_SELECTORS = [
+    '[data-testid="chat-input-textbox"]',
+    '[data-testid="composer-text-area"]',
+    '[contenteditable="true"][role="textbox"][aria-label*="Message" i]',
+    '[contenteditable="true"][aria-label*="compose" i]',
+    '.editable[contenteditable="true"][g_editable="true"]'
+];
 
-const INTERACTIVE_TAGS = new Set([
-    'INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'
-]);
-
-const HOLD_THRESHOLD = 300;    // ms before a keydown counts as a hold
-const DOUBLE_TAP_WINDOW = 300; // ms window for detecting double-tap
+export function isComposerElement(el) {
+    if (!el) return false;
+    if (el.tagName === 'TEXTAREA') return true;
+    if (el.tagName === 'INPUT') {
+        const t = (el.getAttribute('type') || '').toLowerCase();
+        if (t === 'text' || t === 'search' || t === 'email' || t === 'url' || t === '') return true;
+    }
+    for (const sel of COMPOSER_SELECTORS) {
+        if (el.matches && el.matches(sel)) return true;
+        if (el.closest && el.closest(sel)) return true;
+    }
+    return false;
+}
 
 export class InputHandler {
-    constructor(player) {
-        this.player = player;
-        this.currentHoverElement = null;
-        this.mode = 'idle'; // 'idle' | 'hold-reading' | 'continuous-reading'
+    constructor() {
+        this.player = null;
+        this.mode = 'idle';
         this.altDown = false;
         this.lastAltRelease = 0;
         this.holdDelayTimer = null;
@@ -32,11 +44,21 @@ export class InputHandler {
         this._subtitlesEnabled = false;
         this._autoScrollEnabled = true;
         this._hotkey = { key: 'Alt', ctrlKey: false, shiftKey: false, altKey: true, metaKey: false };
+        this._lastMouseX = 0;
+        this._lastMouseY = 0;
+        this._heavyInitDone = false;
+        this._runtimeDead = false;
+        this._AudioPlayerCtor = null;
+        this._pendingTarget = null;
 
         this._onKeyDown = this._onKeyDown.bind(this);
         this._onKeyUp = this._onKeyUp.bind(this);
         this._onMouseMove = this._onMouseMove.bind(this);
         this._onBlur = this._onBlur.bind(this);
+    }
+
+    setAudioPlayerConstructor(Ctor) {
+        this._AudioPlayerCtor = Ctor;
     }
 
     activate() {
@@ -45,19 +67,6 @@ export class InputHandler {
         document.addEventListener('mousemove', this._onMouseMove);
         window.addEventListener('blur', this._onBlur);
         window.addEventListener('beforeunload', () => this.deactivate());
-
-        this.player.onSentenceStart = (index) => this._handleSentenceStart(index);
-        this.player.onPlaybackComplete = () => this._handlePlaybackComplete();
-        this.player.onError = () => this._handleError();
-
-        try {
-            chrome.storage.local.get(['subtitlesEnabled', 'autoScrollEnabled', 'hotkey'], (items) => {
-                if (chrome.runtime.lastError) return;
-                this._subtitlesEnabled = items.subtitlesEnabled || false;
-                this._autoScrollEnabled = items.autoScrollEnabled !== false;
-                if (items.hotkey) this._hotkey = items.hotkey;
-            });
-        } catch (e) { /* extension context invalidated */ }
     }
 
     deactivate() {
@@ -65,29 +74,42 @@ export class InputHandler {
         document.removeEventListener('keyup', this._onKeyUp, true);
         document.removeEventListener('mousemove', this._onMouseMove);
         window.removeEventListener('blur', this._onBlur);
-        if (this.mode !== 'idle') {
-            this.player.stopImmediately();
-        }
+        if (this.player && this.mode !== 'idle') this.player.stopImmediately();
         clearAllHighlights();
     }
 
-    _onMouseMove(event) {
-        const el = document.elementFromPoint(event.clientX, event.clientY);
-        if (el) {
-            this.currentHoverElement = this._resolveTextBlock(el);
+    _maybeInitHeavy() {
+        if (this._heavyInitDone) return;
+        this._heavyInitDone = true;
+        if (this._AudioPlayerCtor) {
+            this.player = new this._AudioPlayerCtor();
+            this.player.onSentenceStart = (i) => this._handleSentenceStart(i);
+            this.player.onPlaybackComplete = () => this._handlePlaybackComplete();
+            this.player.onError = () => this._handleError();
         }
+        try {
+            chrome.storage.local.get(['subtitlesEnabled', 'autoScrollEnabled', 'hotkey'], (items) => {
+                if (chrome.runtime.lastError) return;
+                this._subtitlesEnabled = !!items.subtitlesEnabled;
+                this._autoScrollEnabled = items.autoScrollEnabled !== false;
+                if (items.hotkey) this._hotkey = items.hotkey;
+            });
+        } catch (e) { /* extension context invalidated */ }
+    }
+
+    _onMouseMove(event) {
+        this._lastMouseX = event.clientX;
+        this._lastMouseY = event.clientY;
     }
 
     _matchesHotkey(event) {
         const hk = this._hotkey;
         if (event.key !== hk.key) return false;
-        // For modifier-only hotkeys (Alt, Ctrl, Shift), don't check other modifiers
         if (['Alt', 'Control', 'Shift', 'Meta'].includes(hk.key)) return true;
-        // For combo hotkeys (Ctrl+R, etc.), check modifiers match
-        return event.ctrlKey === hk.ctrlKey &&
-               event.shiftKey === hk.shiftKey &&
-               event.altKey === hk.altKey &&
-               event.metaKey === hk.metaKey;
+        return event.ctrlKey === hk.ctrlKey
+            && event.shiftKey === hk.shiftKey
+            && event.altKey === hk.altKey
+            && event.metaKey === hk.metaKey;
     }
 
     _onKeyDown(event) {
@@ -95,9 +117,18 @@ export class InputHandler {
         if (event.repeat) return;
         if (this.altDown) return;
 
-        event.preventDefault();
+        if (!isRuntimeAlive()) {
+            if (!this._runtimeDead) {
+                this._runtimeDead = true;
+                try { showToast('Readel needs a page refresh.', 5000); } catch (e) {}
+                this.deactivate();
+            }
+            return;
+        }
 
-        // If currently in continuous-reading, Alt press stops it
+        event.preventDefault();
+        this._maybeInitHeavy();
+
         if (this.mode === 'continuous-reading') {
             this._stopContinuous();
             return;
@@ -105,12 +136,26 @@ export class InputHandler {
 
         this.altDown = true;
 
-        // Immediate visual feedback — show which element will be read
-        if (this.currentHoverElement) {
-            showHoverTarget(this.currentHoverElement);
+        const resolved = resolveTextBlockAtPoint(this._lastMouseX, this._lastMouseY);
+
+        if (!resolved) {
+            showMissPulse(this._lastMouseX, this._lastMouseY);
+            this.altDown = false;
+            return;
         }
 
-        // Start hold timer — if it fires, this is a hold
+        if (resolved.nodeType === Node.ELEMENT_NODE && isComposerElement(resolved)) {
+            showMissPulse(this._lastMouseX, this._lastMouseY);
+            this.altDown = false;
+            return;
+        }
+
+        this._pendingTarget = resolved;
+
+        if (resolved.nodeType === Node.ELEMENT_NODE) {
+            showHoverTarget(resolved);
+        }
+
         this.holdDelayTimer = setTimeout(() => {
             this.holdDelayTimer = null;
             if (this.altDown && this.mode === 'idle') {
@@ -126,24 +171,20 @@ export class InputHandler {
         if (!this.altDown) return;
         this.altDown = false;
 
-        // If we're in hold-reading mode, release stops it
         if (this.mode === 'hold-reading') {
             this._stopHoldReading();
             return;
         }
 
-        // If hold timer is still pending, this was a quick tap (not a hold)
         if (this.holdDelayTimer !== null) {
             clearTimeout(this.holdDelayTimer);
             this.holdDelayTimer = null;
 
             const now = Date.now();
             if (now - this.lastAltRelease < DOUBLE_TAP_WINDOW) {
-                // Second tap — double-tap detected
                 this.lastAltRelease = 0;
                 this._startContinuousReading();
             } else {
-                // First tap — record and wait for potential second
                 this.lastAltRelease = now;
                 clearHoverTarget();
             }
@@ -151,110 +192,75 @@ export class InputHandler {
     }
 
     _onBlur() {
-        // Window lost focus (e.g. Alt+Tab) — treat as keyup
         if (this.altDown) {
             this.altDown = false;
             if (this.holdDelayTimer !== null) {
                 clearTimeout(this.holdDelayTimer);
                 this.holdDelayTimer = null;
             }
-            if (this.mode === 'hold-reading') {
-                this._stopHoldReading();
-            }
+            if (this.mode === 'hold-reading') this._stopHoldReading();
         }
-    }
-
-    _resolveTextBlock(el) {
-        if (!el || el === document.documentElement || el === document.body) return null;
-
-        // Skip interactive elements
-        if (INTERACTIVE_TAGS.has(el.tagName) || el.isContentEditable) return null;
-
-        let current = el;
-        // Walk up from inline elements
-        while (current && current !== document.body) {
-            if (INTERACTIVE_TAGS.has(current.tagName) || current.isContentEditable) return null;
-            if (BLOCK_TAGS.has(current.tagName) && !INLINE_TAGS.has(current.tagName)) {
-                const text = (current.innerText || '').trim();
-                if (text.length > 0 && text.length < 10000) {
-                    return current;
-                }
-            }
-            current = current.parentElement;
-        }
-        return null;
     }
 
     _startHoldReading() {
-        const sel = window.getSelection();
-        const selectedText = (sel && !sel.isCollapsed) ? sel.toString().trim() : '';
-        const target = this.currentHoverElement;
-
+        const target = this._pendingTarget;
         let sentences;
-        if (selectedText.length > 0) {
-            sentences = getTextFromSelection(selectedText);
-        } else if (target) {
+
+        if (target && target.kind === 'selection') {
+            sentences = getTextFromSelection(target.text);
+        } else if (target && target.nodeType === Node.ELEMENT_NODE) {
             sentences = getTextFromElement(target);
         } else {
             return;
         }
 
-        this.mode = 'hold-reading';
-        if (sentences.length === 0) {
-            this.mode = 'idle';
-            return;
-        }
+        if (!sentences || sentences.length === 0) { this.mode = 'idle'; return; }
 
+        this.mode = 'hold-reading';
         this.sentences = sentences;
         this.sentenceMap = null;
         clearHoverTarget();
-        if (target) showLoading(target);
-        this.player.startPlaybackCycle(sentences);
+        if (target.nodeType === Node.ELEMENT_NODE) showLoading(target);
+        if (this.player) this.player.startPlaybackCycle(sentences);
     }
 
     _stopHoldReading() {
-        this.player.finishCurrentSentenceAndStop();
-        // mode will be reset in _handlePlaybackComplete
+        if (this.player) this.player.finishCurrentSentenceAndStop();
     }
 
     _startContinuousReading() {
-        const sel = window.getSelection();
-        const selectedText = (sel && !sel.isCollapsed) ? sel.toString().trim() : '';
-        const target = this.currentHoverElement;
-
+        const target = this._pendingTarget;
         let sentences, sentenceMap;
-        if (selectedText.length > 0) {
-            const result = getTextFromSelectionOnward(selectedText);
-            sentences = result.sentences;
-            sentenceMap = result.sentenceMap;
-        } else if (target) {
-            const result = getTextFromElementOnward(target);
-            sentences = result.sentences;
-            sentenceMap = result.sentenceMap;
+
+        if (target && target.kind === 'selection') {
+            const r = getTextFromSelectionOnward(target.text);
+            sentences = r.sentences;
+            sentenceMap = r.sentenceMap;
+        } else if (target && target.nodeType === Node.ELEMENT_NODE) {
+            const r = getTextFromElementOnward(target);
+            sentences = r.sentences;
+            sentenceMap = r.sentenceMap;
         } else {
             return;
         }
 
-        this.mode = 'continuous-reading';
-        if (sentences.length === 0) {
-            this.mode = 'idle';
-            return;
-        }
+        if (!sentences || sentences.length === 0) { this.mode = 'idle'; return; }
 
+        this.mode = 'continuous-reading';
         this.sentences = sentences;
         this.sentenceMap = sentenceMap;
         clearHoverTarget();
-        if (target) showLoading(target);
+        if (target.nodeType === Node.ELEMENT_NODE) showLoading(target);
         showFullPagePill();
         if (this._autoScrollEnabled) startScrollTracking();
-        this.player.startPlaybackCycle(sentences);
+        if (this.player) this.player.startPlaybackCycle(sentences);
     }
 
     _stopContinuous() {
         hideFullPagePill();
         hideSubtitle();
         stopScrollTracking();
-        this.player.stopImmediately();
+        if (this.player) this.player.stopImmediately();
     }
 
     _handleSentenceStart(index) {
@@ -263,11 +269,9 @@ export class InputHandler {
             highlightElement(entry.element);
             if (this._autoScrollEnabled) scrollToElement(entry.element);
             applySentenceRange(entry.range);
-        } else if (this.mode === 'hold-reading' && this.currentHoverElement) {
-            highlightElement(this.currentHoverElement);
+        } else if (this.mode === 'hold-reading' && this._pendingTarget && this._pendingTarget.nodeType === Node.ELEMENT_NODE) {
+            highlightElement(this._pendingTarget);
         }
-
-        // Subtitles (if enabled in settings)
         const text = this.sentences && this.sentences[index];
         if (text && this._subtitlesEnabled) showSubtitle(text);
     }
