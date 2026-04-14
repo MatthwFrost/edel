@@ -1,3 +1,5 @@
+import { newSessionId, matchesSession } from './sessionBus.js';
+
 class AudioPlayer {
     constructor() {
         this.init();
@@ -11,6 +13,7 @@ class AudioPlayer {
         this._stopAfterCurrent = false;
         this._sentenceStartTime = 0;
         this._responseTimes = [];
+        this.currentSessionId = null;
         if (this.onSentenceStart === undefined) this.onSentenceStart = null;
         if (this.onPlaybackComplete === undefined) this.onPlaybackComplete = null;
         if (this.onError === undefined) this.onError = null;
@@ -19,14 +22,13 @@ class AudioPlayer {
     _setupMessageListener() {
         chrome.runtime.onMessage.addListener((message) => {
             if (message.action !== 'tts-event') return;
+            if (!matchesSession(this.currentSessionId, message.sessionId)) return;
 
             if (message.type === 'start') {
                 this.isPlaying = true;
-                // Track response time
                 if (this._sentenceStartTime) {
                     const elapsed = Date.now() - this._sentenceStartTime;
                     this._responseTimes.push(elapsed);
-                    // Store rolling average
                     const avg = this._responseTimes.reduce((a, b) => a + b, 0) / this._responseTimes.length;
                     try { chrome.storage.local.set({ 'avgResponseTime': avg }); } catch (e) {}
                 }
@@ -51,6 +53,7 @@ class AudioPlayer {
         this._stopAfterCurrent = false;
         this.sentences = sentences;
         this.sentenceIndex = 0;
+        this.currentSessionId = newSessionId();
         this._speakCurrent();
     }
 
@@ -61,12 +64,13 @@ class AudioPlayer {
             return;
         }
         this._sentenceStartTime = Date.now();
-        console.log('[Readel content] Sending tts-speak for:', this.sentences[this.sentenceIndex].substring(0, 40));
         try {
-            chrome.runtime.sendMessage({ action: 'tts-speak', sentence: this.sentences[this.sentenceIndex] })
-                .then(r => console.log('[Readel content] tts-speak sent, response:', r))
-                .catch(err => console.error('[Readel content] tts-speak failed:', err));
-        } catch (e) { console.error('[Readel content] sendMessage threw:', e); }
+            chrome.runtime.sendMessage({
+                action: 'tts-speak',
+                sentence: this.sentences[this.sentenceIndex],
+                sessionId: this.currentSessionId
+            }).catch(() => {});
+        } catch (e) { /* context invalidated */ }
     }
 
     finishCurrentSentenceAndStop() {
@@ -75,8 +79,8 @@ class AudioPlayer {
 
     stopImmediately() {
         try {
-            chrome.runtime.sendMessage({ action: 'tts-stop' }).catch(() => {});
-        } catch (e) { /* extension context invalidated */ }
+            chrome.runtime.sendMessage({ action: 'tts-stop', sessionId: this.currentSessionId }).catch(() => {});
+        } catch (e) { /* context invalidated */ }
         const onComplete = this.onPlaybackComplete;
         this.init();
         if (onComplete) onComplete();

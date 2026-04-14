@@ -94,6 +94,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 chrome.runtime.sendMessage({
                     action: 'offscreen-speak',
                     sentence: message.sentence,
+                    sessionId: message.sessionId,
                     voiceId,
                     apiKey,
                     speed
@@ -106,7 +107,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         })();
         return false;
     } else if (message.action === "tts-stop") {
-        chrome.runtime.sendMessage({ action: 'offscreen-stop' }).catch(() => {});
+        chrome.runtime.sendMessage({ action: 'offscreen-stop', sessionId: message.sessionId }).catch(() => {});
         return false;
     } else if (message.action === "tts-event") {
         // Forward to content scripts only. Do NOT re-broadcast via chrome.runtime.sendMessage
@@ -116,7 +117,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (activeTtsTabId) {
             chrome.tabs.sendMessage(activeTtsTabId, {
                 action: 'tts-event',
-                type: message.type
+                type: message.type,
+                sessionId: message.sessionId
             }).catch(() => {});
         }
         return false;
