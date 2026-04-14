@@ -42,8 +42,9 @@ function connectWebSocket(apiKey) {
 
     ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
-        if (msg.type === 'error') console.error('Readel Cartesia error:', msg);
-        if (msg.context_id !== currentContextId) return;
+
+        // Drop messages for stale contexts (canceled sentences echo here).
+        if (msg.context_id && msg.context_id !== currentContextId) return;
 
         if (msg.type === 'chunk' && msg.data) {
             if (nextPlayTime === 0 || nextPlayTime <= audioCtx.currentTime) sendEvent('start');
@@ -62,6 +63,8 @@ function connectWebSocket(apiKey) {
             const remaining = Math.max(0, (nextPlayTime - audioCtx.currentTime) * 1000);
             setTimeout(() => sendEvent('end'), remaining);
         } else if (msg.type === 'error') {
+            // Log with stringified payload so chrome://extensions errors panel shows details.
+            console.error('Readel Cartesia error:', JSON.stringify(msg));
             sendEvent('error');
         }
     };
