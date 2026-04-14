@@ -131,8 +131,10 @@ export class InputHandler {
         event.preventDefault();
         this._maybeInitHeavy();
 
-        if (this.mode === 'continuous-reading') {
-            this._stopContinuous();
+        // Any Alt press while a read is in progress (hold, continuous, or iframe-delegated)
+        // stops it immediately. User's universal escape hatch.
+        if (this.mode !== 'idle') {
+            this._stopEverything();
             return;
         }
 
@@ -250,6 +252,20 @@ export class InputHandler {
 
     _stopHoldReading() {
         if (this.player) this.player.finishCurrentSentenceAndStop();
+    }
+
+    _stopEverything() {
+        if (this.holdDelayTimer !== null) {
+            clearTimeout(this.holdDelayTimer);
+            this.holdDelayTimer = null;
+        }
+        this.altDown = false;
+        this._pendingTarget = null;
+        this._pendingIframe = null;
+        hideFullPagePill();
+        hideSubtitle();
+        stopScrollTracking();
+        if (this.player) this.player.stopImmediately();
     }
 
     _startContinuousReading() {
