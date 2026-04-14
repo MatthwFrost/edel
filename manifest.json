@@ -22,10 +22,10 @@
     }
   ],
   "icons": {
-    "16": "/assets/newicon.png",
-    "32": "/assets/newicon.png",
-    "48": "/assets/newicon.png",
-    "128": "/assets/newicon.png"
+    "16": "/assets/readel-icon-512.png",
+    "32": "/assets/readel-icon-512.png",
+    "48": "/assets/readel-icon-512.png",
+    "128": "/assets/readel-icon-512.png"
   },
   "action": {
     "default_popup": "/scripts/popup/index.html"
