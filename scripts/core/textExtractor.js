@@ -19,6 +19,56 @@ export function isReadableBlock(el) {
   return ownText.trim().length >= 2;
 }
 
+const INLINE_TAGS = new Set([
+  'A', 'ABBR', 'ACRONYM', 'B', 'BDO', 'BIG', 'BR', 'CITE', 'CODE',
+  'DFN', 'EM', 'I', 'IMG', 'INPUT', 'KBD', 'LABEL', 'MAP', 'OBJECT',
+  'OUTPUT', 'Q', 'SAMP', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB',
+  'SUP', 'TEXTAREA', 'TIME', 'TT', 'U', 'VAR'
+]);
+
+function isBlockLikeEl(el) {
+  if (!el || el.nodeType !== Node.ELEMENT_NODE) return false;
+  if (INLINE_TAGS.has(el.tagName)) return false;
+  return isReadableBlock(el);
+}
+
+export function resolveTextBlockAtPoint(x, y) {
+  // Step 1 — caret point, walk up to readable block
+  let caret = null;
+  if (typeof document.caretPositionFromPoint === 'function') {
+    caret = document.caretPositionFromPoint(x, y);
+  } else if (typeof document.caretRangeFromPoint === 'function') {
+    caret = document.caretRangeFromPoint(x, y);
+  }
+  if (caret) {
+    const node = caret.offsetNode || caret.startContainer || null;
+    if (node && node.nodeType === Node.TEXT_NODE && node.textContent && node.textContent.trim().length > 0) {
+      let el = node.parentElement;
+      while (el && el !== document.body) {
+        if (isBlockLikeEl(el)) return el;
+        el = el.parentElement;
+      }
+    }
+  }
+
+  // Step 2 — elementFromPoint walk-up
+  const hit = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(x, y) : null;
+  let el = hit;
+  while (el && el !== document.body) {
+    if (isReadableBlock(el)) return el;
+    el = el.parentElement;
+  }
+
+  // Step 3 — active non-empty selection
+  const sel = typeof window.getSelection === 'function' ? window.getSelection() : null;
+  if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) {
+    return { kind: 'selection', text: sel.toString().trim() };
+  }
+
+  // Step 4 — silent (caller shows miss pulse)
+  return null;
+}
+
 const BLOCK_TAGS = new Set([
     'P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
     'BLOCKQUOTE', 'TD', 'TH', 'FIGCAPTION', 'PRE', 'DD', 'DT'
