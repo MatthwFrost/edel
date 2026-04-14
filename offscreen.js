@@ -1,0 +1,159 @@
+let ws = null;
+let audioCtx = null;
+let nextPlayTime = 0;
+let currentContextId = null;
+let wsReady = false;
+let pendingRequest = null;
+
+const SAMPLE_RATE = 24000;
+
+function sendEvent(type, extra) {
+    chrome.runtime.sendMessage(
+        Object.assign({ action: 'tts-event', type }, extra || {}),
+        () => { if (chrome.runtime.lastError) { /* ignore */ } }
+    );
+}
+
+function ensureAudioContext() {
+    if (!audioCtx || audioCtx.state === 'closed') {
+        audioCtx = new AudioContext({ sampleRate: SAMPLE_RATE });
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function connectWebSocket(apiKey) {
+    if (ws && ws.readyState === WebSocket.OPEN) return;
+
+    const url = `wss://api.cartesia.ai/tts/websocket?api_key=${apiKey}&cartesia_version=2025-04-16`;
+    console.log('[Readel offscreen] opening WebSocket, key prefix:', apiKey.substring(0, 10));
+    ws = new WebSocket(url);
+    wsReady = false;
+
+    ws.onopen = () => {
+        wsReady = true;
+        if (pendingRequest) {
+            ws.send(JSON.stringify(pendingRequest));
+            pendingRequest = null;
+        }
+    };
+
+    ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+
+        if (msg.type === 'error') {
+            console.error('Readel Cartesia error:', msg);
+        }
+
+        if (msg.context_id !== currentContextId) return;
+
+        if (msg.type === 'chunk' && msg.data) {
+            // First chunk — notify content script that audio is starting
+            if (nextPlayTime === 0 || nextPlayTime <= audioCtx.currentTime) {
+                sendEvent('start');
+            }
+
+            // Decode base64 PCM float32 and schedule playback
+            const pcmBytes = base64ToArrayBuffer(msg.data);
+            const samples = new Float32Array(pcmBytes);
+            const buffer = audioCtx.createBuffer(1, samples.length, SAMPLE_RATE);
+            buffer.getChannelData(0).set(samples);
+
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            if (nextPlayTime < now) nextPlayTime = now;
+            source.start(nextPlayTime);
+            nextPlayTime += buffer.duration;
+        } else if (msg.type === 'done') {
+            // Schedule end event after all buffered audio finishes
+            const remaining = Math.max(0, (nextPlayTime - audioCtx.currentTime) * 1000);
+            setTimeout(() => {
+                sendEvent('end');
+            }, remaining);
+        } else if (msg.type === 'error') {
+            sendEvent('error');
+        }
+    };
+
+    ws.onerror = (err) => {
+        console.error('Readel WebSocket error:', err);
+        wsReady = false;
+        sendEvent('error');
+    };
+
+    ws.onclose = () => {
+        wsReady = false;
+        ws = null;
+    };
+}
+
+function speak(sentence, voiceId, apiKey, speed) {
+    ensureAudioContext();
+    connectWebSocket(apiKey);
+
+    currentContextId = 'ctx-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+    nextPlayTime = 0;
+
+    // Cartesia sonic-3 speed range: 0.6 – 1.5
+    const cartesiaSpeed = Math.min(1.5, Math.max(0.6, speed || 1));
+
+    const request = {
+        model_id: 'sonic-3',
+        transcript: sentence,
+        voice: { mode: 'id', id: voiceId },
+        language: 'en',
+        generation_config: { speed: cartesiaSpeed },
+        context_id: currentContextId,
+        output_format: {
+            container: 'raw',
+            encoding: 'pcm_f32le',
+            sample_rate: SAMPLE_RATE
+        }
+    };
+
+    console.log('Readel sending:', request);
+    if (wsReady) {
+        ws.send(JSON.stringify(request));
+    } else {
+        pendingRequest = request;
+    }
+}
+
+function stopAudio() {
+    // Cancel current generation
+    if (ws && wsReady && currentContextId) {
+        try {
+            ws.send(JSON.stringify({ context_id: currentContextId, cancel: true }));
+        } catch (e) { /* ignore */ }
+    }
+    currentContextId = null;
+    nextPlayTime = 0;
+
+    // Stop all scheduled audio by closing and recreating context
+    if (audioCtx) {
+        audioCtx.close().catch(() => {});
+        audioCtx = null;
+    }
+}
+
+function base64ToArrayBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new ArrayBuffer(binary.length);
+    const view = new Uint8Array(bytes);
+    for (let i = 0; i < binary.length; i++) {
+        view[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
+
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.action === 'offscreen-speak') {
+        speak(message.sentence, message.voiceId, message.apiKey, message.speed);
+    } else if (message.action === 'offscreen-stop') {
+        stopAudio();
+    }
+});

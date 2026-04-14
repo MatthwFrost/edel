@@ -1,0 +1,263 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    background: #525659;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow-x: hidden;
+}
+
+/* ── Toolbar ── */
+
+#toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+    padding: 0 8px;
+    background: #323639;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    color: #cbcbcb;
+    font-size: 13px;
+    user-select: none;
+}
+
+#toolbar-left, #toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+#toolbar-center {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    padding: 0 12px;
+}
+
+#title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #999;
+    font-size: 12px;
+}
+
+.sep {
+    width: 1px;
+    height: 20px;
+    background: #494c4f;
+    margin: 0 6px;
+}
+
+#toolbar button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #cbcbcb;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+}
+
+#toolbar button:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+#toolbar button:active {
+    background: rgba(255,255,255,0.12);
+}
+
+#toolbar button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+#toolbar button:disabled:hover {
+    background: transparent;
+}
+
+/* Page info */
+
+#pageinfo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #cbcbcb;
+}
+
+#pageinput {
+    width: 36px;
+    height: 24px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: #3e4245;
+    color: #cbcbcb;
+    text-align: center;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    padding: 0 2px;
+}
+
+#pageinput:focus {
+    border-color: #8ab4f8;
+}
+
+#pagetotal {
+    color: #999;
+}
+
+#zoomlevel {
+    font-size: 12px;
+    min-width: 40px;
+    text-align: center;
+    color: #cbcbcb;
+}
+
+/* ── Viewer area ── */
+
+#viewer-wrapper {
+    transform-origin: top center;
+}
+
+#viewer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 60px;
+    gap: 8px;
+}
+
+.page-container {
+    position: relative;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    --scale-round-x: 1px;
+    --scale-round-y: 1px;
+}
+
+.page-container canvas {
+    display: block;
+}
+
+/* ── pdf.js text layer ── */
+
+.textLayer {
+    position: absolute;
+    text-align: initial;
+    inset: 0;
+    overflow: clip;
+    opacity: 1;
+    line-height: 1;
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+    transform-origin: 0 0;
+    caret-color: CanvasText;
+    z-index: 0;
+}
+
+.textLayer :is(span, br) {
+    color: transparent;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+}
+
+.textLayer {
+    --min-font-size: 1;
+    --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+    --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+.textLayer > :not(.markedContent):not(.readel-block),
+.textLayer .markedContent span:not(.markedContent) {
+    z-index: 1;
+    --font-height: 0;
+    font-size: calc(var(--text-scale-factor) * var(--font-height));
+    --scale-x: 1;
+    --rotate: 0deg;
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.textLayer .markedContent {
+    display: contents;
+}
+
+.textLayer ::selection {
+    background: rgba(59, 130, 246, 0.3);
+}
+
+.textLayer br::selection {
+    background: transparent;
+}
+
+.textLayer .endOfContent {
+    display: block;
+    position: absolute;
+    inset: 100% 0 0;
+    z-index: 0;
+    cursor: default;
+    user-select: none;
+}
+
+/* ── Readel paragraph overlays ── */
+
+.readel-block {
+    position: absolute;
+    color: transparent;
+    z-index: 2;
+    cursor: text;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Hidden canvas used by pdf.js for text measurement */
+.hiddenCanvasElement {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+}
+
+/* ── Loading / error ── */
+
+#loading {
+    color: #999;
+    font-size: 14px;
+    margin-top: 40vh;
+    text-align: center;
+}
+
+#loading.hidden {
+    display: none;
+}
+
+#error {
+    color: #e55;
+    font-size: 14px;
+    margin-top: 40vh;
+    text-align: center;
+    display: none;
+}

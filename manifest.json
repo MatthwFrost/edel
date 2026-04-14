@@ -1,33 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Readel: AI Text-to-Speech",
-  "version": "1.4.4",
-  "description": "Minimal extension to read aloud any Reddit posts, audio books or webpages with the best sounding speech synthesis.",
+  "name": "Readel: Free, Modern Text to Speech",
+  "version": "2.0.1",
+  "description": "Modern, minimal, free text-to-speech. Hold Alt over any text to listen. No sign-up, no buttons, no menus.",
   "permissions": [
     "storage",
-    "contextMenus",
-    "identity",
-    "scripting",
-    "tabs"
+    "offscreen",
+    "activeTab"
   ],
-  "oauth2": {
-    "client_id": "227012789435-ih22fn4rv6eos09jfp1p0b3h5l2rtt96.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email"
-    ]
-  },
   "background": {
     "service_worker": "/build/background.js",
     "permissions": true,
     "type": "module"
   },
-  "web_accessible_resources": [
-    {
-      "resources": ["scripts/style/injectedContent.html", "scripts/style/elementStyle.css"],
-      "matches": ["<all_urls>"]
-    }
-  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -45,7 +30,7 @@
     "default_popup": "/scripts/popup/index.html"
   },
   "host_permissions": [
-    "http://*/*",
-    "https://*/*"
+    "https://api.cartesia.ai/*",
+    "<all_urls>"
   ]
 }
